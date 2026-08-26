@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@source '../../lexical-editor/src';
+
+@theme {
+  --font-sans: system-ui, sans-serif;
+}

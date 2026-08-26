@@ -1,0 +1,104 @@
+import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/extension';
+import { $createHorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
+import { $insertNodeToNearestRoot } from '@lexical/utils';
+import {
+  $getSelection,
+  $insertNodes,
+  $isRangeSelection,
+  COMMAND_PRIORITY_EDITOR,
+  defineExtension,
+} from 'lexical';
+import type { EditorState, LexicalEditor } from 'lexical';
+import { $createImageNode, ImageNode } from './ImageNode';
+import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
+
+export type OnChangeCallback = (
+  editorState: EditorState,
+  editor: LexicalEditor,
+) => void;
+
+export interface OnChangeConfig {
+  onChangeRef: { current: OnChangeCallback | undefined };
+}
+
+/**
+ * Replaces `@lexical/react/LexicalOnChangePlugin`. Fires on every editor
+ * update and forwards the latest editor state to the (ref-stored) callback so
+ * the extension itself can stay referentially stable across renders.
+ */
+export const OnChangeExtension = defineExtension({
+  name: '@leditor/on-change',
+  config: {} as OnChangeConfig,
+  register(editor, config) {
+    return editor.registerUpdateListener(({ editorState }) => {
+      config.onChangeRef.current?.(editorState, editor);
+    });
+  },
+});
+
+export interface InitialValueConfig {
+  initialValue?: string;
+}
+
+/**
+ * Sets the editor state from a serialized string on first registration. This
+ * runs before the implicit `InitialStateExtension` (which only seeds an empty
+ * paragraph when the root is empty), so a provided value is preserved.
+ */
+export const InitialValueExtension = defineExtension({
+  name: '@leditor/initial-value',
+  config: {} as InitialValueConfig,
+  register(editor, config) {
+    if (config.initialValue) {
+      editor.setEditorState(editor.parseEditorState(config.initialValue));
+    }
+    return () => {};
+  },
+});
+
+/**
+ * Replaces the inline `InsertImagePlugin`. Registers the
+ * `INSERT_IMAGE_COMMAND` so images can be inserted from anywhere with editor
+ * access.
+ */
+export const InsertImageExtension = defineExtension({
+  name: '@leditor/insert-image',
+  register(editor) {
+    if (!editor.hasNodes([ImageNode])) {
+      throw new Error('InsertImageExtension: ImageNode not registered');
+    }
+    return editor.registerCommand<InsertImagePayload>(
+      INSERT_IMAGE_COMMAND,
+      (payload) => {
+        const imageNode = $createImageNode(payload);
+        $insertNodes([imageNode]);
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  },
+});
+
+/**
+ * Replaces `@lexical/react/LexicalHorizontalRulePlugin`. Uses the React
+ * `HorizontalRuleNode` (so it renders with selection UI) while keeping the
+ * editor configuration fully extension-based.
+ */
+export const HorizontalRuleExtension = defineExtension({
+  name: '@leditor/horizontal-rule',
+  register(editor) {
+    return editor.registerCommand(
+      INSERT_HORIZONTAL_RULE_COMMAND,
+      () => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return false;
+        const focusNode = selection.focus.getNode();
+        if (focusNode !== null) {
+          $insertNodeToNearestRoot($createHorizontalRuleNode());
+        }
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  },
+});

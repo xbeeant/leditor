@@ -1,0 +1,23 @@
+{
+  "name": "leditor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Lerna monorepo: Lexical-based rich text editor and examples",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "lerna run build",
+    "dev": "lerna run dev --stream",
+    "test": "lerna run test",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "lerna": "^8.1.9",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
