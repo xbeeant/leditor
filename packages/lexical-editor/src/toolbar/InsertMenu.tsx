@@ -15,11 +15,14 @@ import {
   SquarePlus,
   Table as TableIcon,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { TableSizePicker } from './TableSizePicker';
+import { ToolbarPopup } from './ToolbarPopup';
 import type { InsertBlockType } from './types';
 
 interface InsertMenuProps {
   onInsert: (type: InsertBlockType) => void;
+  onInsertTable: (rows: number, cols: number) => void;
 }
 
 interface InsertItem {
@@ -59,20 +62,15 @@ const SECTIONS: { title: string; items: InsertItem[] }[] = [
   },
 ];
 
-export function InsertMenu({ onInsert }: InsertMenuProps) {
+export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
   const [open, setOpen] = useState(false);
+  const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  const closeMenu = () => {
+    setOpen(false);
+    setTablePickerOpen(false);
+  };
 
   return (
     <div ref={ref} className="relative">
@@ -93,30 +91,49 @@ export function InsertMenu({ onInsert }: InsertMenuProps) {
         />
       </button>
       {open && (
-        <div className="absolute left-0 top-9 z-30 max-h-72 w-56 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-          {SECTIONS.map((section) => (
-            <div key={section.title}>
-              <div className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
-                {section.title}
+        <ToolbarPopup
+          anchorRef={ref}
+          open={open}
+          onClose={closeMenu}
+          className="max-h-72 w-56 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+        >
+          {tablePickerOpen ? (
+            <TableSizePicker
+              onSelect={(rows, cols) => {
+                onInsertTable(rows, cols);
+                closeMenu();
+              }}
+              onCancel={() => setTablePickerOpen(false)}
+            />
+          ) : (
+            SECTIONS.map((section) => (
+              <div key={section.title}>
+                <div className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                  {section.title}
+                </div>
+                {section.items.map((item) => (
+                  <button
+                    key={item.type}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      if (item.type === 'table') {
+                        setTablePickerOpen(true);
+                        return;
+                      }
+                      onInsert(item.type);
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
+                  >
+                    <item.icon size={16} className="shrink-0 text-gray-500" />
+                    {item.label}
+                  </button>
+                ))}
               </div>
-              {section.items.map((item) => (
-                <button
-                  key={item.type}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    onInsert(item.type);
-                    setOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
-                >
-                  <item.icon size={16} className="shrink-0 text-gray-500" />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
+            ))
+          )}
+        </ToolbarPopup>
       )}
     </div>
   );

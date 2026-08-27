@@ -18,17 +18,18 @@ import {
   configExtension,
   defineExtension,
 } from 'lexical';
-import { List } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
-import { CommentExtension } from './comment/CommentExtension';
-import { CommentPanel } from './comment/CommentPanel';
-import { CommentPlugin } from './comment/CommentPlugin';
+import { FloatingTableActionsPlugin } from './FloatingTableActions';
 import { ImageNode } from './ImageNode';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
+import { TableDragSelectFix } from './TableDragSelectFix';
 import { TableOfContents } from './TableOfContents';
 import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
+import { CommentExtension } from './comment/CommentExtension';
+import { CommentPanel } from './comment/CommentPanel';
+import { CommentPlugin } from './comment/CommentPlugin';
 import {
   HorizontalRuleExtension,
   InitialValueExtension,
@@ -121,6 +122,8 @@ export function Editor({
           {showComments && <CommentPanel />}
         </div>
         <TableActionMenuPlugin />
+        <FloatingTableActionsPlugin />
+        <TableDragSelectFix />
         <CommentPlugin />
       </LexicalExtensionComposer>
     </div>

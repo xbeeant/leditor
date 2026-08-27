@@ -1,5 +1,6 @@
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ToolbarPopup } from './ToolbarPopup';
 
 export interface DropdownOption {
   value: string;
@@ -31,17 +32,6 @@ export function ToolbarDropdown({
   const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -81,7 +71,12 @@ export function ToolbarDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-9 z-30 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+        <ToolbarPopup
+          anchorRef={ref}
+          open={open}
+          onClose={() => setOpen(false)}
+          className="w-56 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+        >
           {searchable && (
             <div className="flex items-center gap-1 border-b border-gray-100 px-2 py-1.5">
               <Search size={14} className="shrink-0 text-gray-400" />
@@ -125,7 +120,7 @@ export function ToolbarDropdown({
               ))
             )}
           </ul>
-        </div>
+        </ToolbarPopup>
       )}
     </div>
   );

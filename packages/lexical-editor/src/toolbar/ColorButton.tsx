@@ -1,6 +1,7 @@
 import { Pipette } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ToolbarButton } from './ToolbarButton';
+import { ToolbarPopup } from './ToolbarPopup';
 
 interface ColorButtonProps {
   label: string;
@@ -18,17 +19,6 @@ export function ColorButton({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
   const indicator = color === 'transparent' ? '#ffffff' : color;
 
   return (
@@ -43,7 +33,12 @@ export function ColorButton({
         </span>
       </ToolbarButton>
       {open && (
-        <div className="absolute left-0 top-9 z-20 grid w-40 grid-cols-5 gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+        <ToolbarPopup
+          anchorRef={ref}
+          open={open}
+          onClose={() => setOpen(false)}
+          className="grid w-40 grid-cols-5 gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+        >
           {colors.map((c) => (
             <button
               key={c}
@@ -65,7 +60,7 @@ export function ColorButton({
             />
             Custom
           </label>
-        </div>
+        </ToolbarPopup>
       )}
     </div>
   );

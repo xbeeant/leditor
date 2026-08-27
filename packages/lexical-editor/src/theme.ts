@@ -64,4 +64,6 @@ export const editorTheme = {
   tableRow: 'border border-gray-300',
   tableCell: 'border border-gray-300 p-1 align-top',
   tableCellHeader: 'border border-gray-300 p-1 bg-gray-100 font-semibold',
+  tableCellSelected:
+    'bg-blue-300/80 outline-2 outline-blue-500/80 outline -outline-offset-1',
 };

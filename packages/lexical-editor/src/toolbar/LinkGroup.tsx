@@ -1,5 +1,7 @@
 import { Link as LinkIcon, X } from 'lucide-react';
+import { useRef } from 'react';
 import { ToolbarButton } from './ToolbarButton';
+import { ToolbarPopup } from './ToolbarPopup';
 
 interface LinkGroupProps {
   active: boolean;
@@ -20,14 +22,20 @@ export function LinkGroup({
   onCommit,
   onClose,
 }: LinkGroupProps) {
+  const ref = useRef<HTMLDivElement>(null);
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       <ToolbarButton title="Insert link" active={active} onClick={onToggle}>
         <LinkIcon size={18} />
       </ToolbarButton>
 
       {open && (
-        <div className="absolute left-0 top-9 z-30 flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+        <ToolbarPopup
+          anchorRef={ref}
+          open={open}
+          onClose={onClose}
+          className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+        >
           <input
             autoFocus
             className="h-8 w-64 rounded-md border border-gray-200 px-2 text-sm outline-none focus:border-blue-400"
@@ -49,7 +57,7 @@ export function LinkGroup({
           <ToolbarButton title="Close" onClick={onClose}>
             <X size={18} />
           </ToolbarButton>
-        </div>
+        </ToolbarPopup>
       )}
     </div>
   );

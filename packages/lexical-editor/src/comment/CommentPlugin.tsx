@@ -20,7 +20,6 @@ import { createPortal } from 'react-dom';
 import {
   TOGGLE_COMMENT_INPUT_COMMAND,
   UNWRAP_MARK_COMMAND,
-  WRAP_SELECTION_IN_MARK_COMMAND,
 } from './commentCommands';
 import { timeAgo } from './format';
 import { mockCommentsApi } from './mockApi';

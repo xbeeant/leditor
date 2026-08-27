@@ -1,4 +1,4 @@
-import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
+import { $createTableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import {
   $createParagraphNode,
   $getSelection,
@@ -58,7 +58,7 @@ export function $createTable(columns: number, rows: number): TableNode {
   for (let r = 0; r < rows; r += 1) {
     const row = new TableRowNode();
     for (let c = 0; c < columns; c += 1) {
-      const cell = new TableCellNode(1);
+      const cell = $createTableCellNode();
       cell.append($createParagraphNode());
       row.append(cell);
     }

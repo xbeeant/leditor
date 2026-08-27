@@ -9,8 +9,8 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
   REMOVE_LIST_COMMAND,
 } from '@lexical/list';
-import { $createHorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $createHorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
 import {
   $createHeadingNode,
   $createQuoteNode,
@@ -18,6 +18,7 @@ import {
   $isQuoteNode,
 } from '@lexical/rich-text';
 import { $patchStyleText, $setBlocksType } from '@lexical/selection';
+import { $findCellNode, $isTableSelection } from '@lexical/table';
 import {
   $createParagraphNode,
   $getSelection,
@@ -35,13 +36,13 @@ import {
 } from 'lexical';
 import { List, MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
 import { $createImageNode } from '../ImageNode';
 import {
   $createTable,
   insertBlockAfter,
   insertParagraphAfter,
 } from '../commands';
+import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
 import { AlignGroup } from './AlignGroup';
 import { BlockGroup } from './BlockGroup';
 import { ClearFormatGroup } from './ClearFormatGroup';
@@ -50,6 +51,7 @@ import { FontGroup } from './FontGroup';
 import { HistoryGroup } from './HistoryGroup';
 import { InsertGroup } from './InsertGroup';
 import { LinkGroup } from './LinkGroup';
+import { TableGroup } from './TableGroup';
 import { TextFormatGroup } from './TextFormatGroup';
 import { ToolbarDivider } from './ToolbarDivider';
 import type {
@@ -59,7 +61,19 @@ import type {
   TextFormat,
 } from './types';
 
-export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComments}: {toc?: boolean, onTogglePin?: () => void, pinned?: boolean, showComments?: boolean, onToggleComments?: () => void}) {
+export function Toolbar({
+  toc,
+  onTogglePin,
+  pinned,
+  showComments,
+  onToggleComments,
+}: {
+  toc?: boolean;
+  onTogglePin?: () => void;
+  pinned?: boolean;
+  showComments?: boolean;
+  onToggleComments?: () => void;
+}) {
   const [editor] = useLexicalComposerContext();
   const [blockType, setBlockType] = useState<BlockType>('paragraph');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
@@ -83,14 +97,17 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
   const [linkEditorOpen, setLinkEditorOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkActive, setLinkActive] = useState(false);
+  const [inTable, setInTable] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) {
+      setInTable($isTableSelection(selection));
       return;
     }
     const anchorNode = selection.anchor.getNode();
+    setInTable($findCellNode(anchorNode) !== null);
 
     setFormats({
       bold: selection.hasFormat('bold'),
@@ -278,8 +295,8 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
     editor.focus();
   };
 
-  const insertTable = () => {
-    insertBlockAfter(editor, () => $createTable(3, 3));
+  const insertTable = (rows: number, cols: number) => {
+    insertBlockAfter(editor, () => $createTable(cols, rows));
   };
 
   const insertImage = () => {
@@ -322,7 +339,7 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
         });
         break;
       case 'table':
-        insertTable();
+        insertTable(3, 3);
         break;
       case 'divider':
         insertBlockAfter(editor, () => $createHorizontalRuleNode());
@@ -373,7 +390,7 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
   return (
     <div
       ref={toolbarRef}
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-gray-200 bg-gradient-to-b from-white to-gray-50/70 px-2 py-1.5 shadow-sm backdrop-blur"
+      className="sticky top-0 z-10 flex flex-nowrap items-center gap-1 overflow-x-auto border-b border-gray-200 bg-gradient-to-b from-white to-gray-50/70 px-2 py-1.5 shadow-sm backdrop-blur [&>*]:shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       <HistoryGroup
         canUndo={canUndo}
@@ -384,7 +401,7 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
 
       <ToolbarDivider />
 
-      <InsertGroup onInsert={insertBlockOfType} />
+      <InsertGroup onInsert={insertBlockOfType} onInsertTable={insertTable} />
 
       <ToolbarDivider />
 
@@ -446,48 +463,57 @@ export function Toolbar({toc, onTogglePin, pinned, showComments, onToggleComment
 
       <ClearFormatGroup onClear={clearFormatting} />
 
-      <ToolbarDivider />
+      {inTable && (
+        <>
+          <ToolbarDivider />
+          <TableGroup />
+        </>
+      )}
 
-      <button
-        type="button"
-        onClick={() => editor.dispatchCommand(TOGGLE_COMMENT_INPUT_COMMAND, true)}
-        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
-        title="Add comment"
-      >
-        <MessageSquarePlus size={14} />
-      </button>
-
-      <ToolbarDivider />
-
-      <button
-        type="button"
-        onClick={onToggleComments}
-        aria-pressed={showComments}
-        className={
-          showComments
-            ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-800 hover:bg-gray-100'
-            : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
-        }
-        title={showComments ? 'Hide comments panel' : 'Show comments panel'}
-      >
-        <MessageSquare size={14} />
-      </button>
-
-      {toc && (
+      <div className="ml-auto flex items-center gap-1">
         <button
           type="button"
-          onClick={onTogglePin}
-          aria-pressed={pinned}
+          onClick={() =>
+            editor.dispatchCommand(TOGGLE_COMMENT_INPUT_COMMAND, true)
+          }
+          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+          title="Add comment"
+        >
+          <MessageSquarePlus size={14} />
+        </button>
+
+        <ToolbarDivider />
+
+        <button
+          type="button"
+          onClick={onToggleComments}
+          aria-pressed={showComments}
           className={
-            pinned
+            showComments
               ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-800 hover:bg-gray-100'
               : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
           }
-          title={pinned ? 'Unpin table of contents' : 'Pin table of contents'}
+          title={showComments ? 'Hide comments panel' : 'Show comments panel'}
         >
-          <List size={14} />
+          <MessageSquare size={14} />
         </button>
-      )}
+
+        {toc && (
+          <button
+            type="button"
+            onClick={onTogglePin}
+            aria-pressed={pinned}
+            className={
+              pinned
+                ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-800 hover:bg-gray-100'
+                : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
+            }
+            title={pinned ? 'Unpin table of contents' : 'Pin table of contents'}
+          >
+            <List size={14} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
