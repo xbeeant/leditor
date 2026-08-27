@@ -53,7 +53,7 @@ export function ToolbarDropdown({
   }, [options, query, searchable]);
 
   return (
-    <div ref={ref} className={`relative ${className ?? ''}`}>
+    <div ref={ref} className={`relative ${className ?? 'w-30'}`}>
       <button
         type="button"
         title={label}
@@ -61,7 +61,7 @@ export function ToolbarDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-blue-400"
+        className="flex h-8 w-full cursor-pointer items-center justify-between gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300"
       >
         <span className="truncate">{display}</span>
         <ChevronDown

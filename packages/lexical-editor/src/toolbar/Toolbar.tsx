@@ -17,12 +17,13 @@ import {
   $isHeadingNode,
   $isQuoteNode,
 } from '@lexical/rich-text';
-import { $patchStyleText, $setBlocksType } from '@lexical/selection';
+import { $patchStyleText, $setBlocksType, $getSelectionStyleValueForProperty } from '@lexical/selection';
 import { $findCellNode, $isTableSelection } from '@lexical/table';
 import {
   $createParagraphNode,
   $getSelection,
   $isRangeSelection,
+  $isTextNode,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
   COMMAND_PRIORITY_CRITICAL,
@@ -43,6 +44,7 @@ import {
   insertParagraphAfter,
 } from '../commands';
 import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
+import { HEADING_FONT_SIZE_MAP, MIXED_FONT_SIZE } from './constants';
 import { AlignGroup } from './AlignGroup';
 import { BlockGroup } from './BlockGroup';
 import { ClearFormatGroup } from './ClearFormatGroup';
@@ -153,12 +155,46 @@ export function Toolbar({
       setBlockType('paragraph');
     }
 
-    const style = element.getStyle?.() ?? '';
-    setFontFamily(style.match(/font-family:\s*([^;]+)/i)?.[1]?.trim() ?? '');
-    setFontSize(style.match(/font-size:\s*([^;]+)/i)?.[1]?.trim() ?? '');
-    setFontColor(style.match(/color:\s*([^;]+)/i)?.[1]?.trim() ?? '#000000');
+    // 字体 / 颜色 / 背景色：从选中文本读取（参考 ca/lexical/packages/lib）
+    setFontFamily(
+      $getSelectionStyleValueForProperty(selection, 'font-family', 'Arial'),
+    );
+    setFontColor($getSelectionStyleValueForProperty(selection, 'color', '#000000'));
     setBgColor(
-      style.match(/background-color:\s*([^;]+)/i)?.[1]?.trim() ?? 'transparent',
+      $getSelectionStyleValueForProperty(
+        selection,
+        'background-color',
+        'transparent',
+      ),
+    );
+
+    // 字号：处理 mixed 与标题默认字号（参考 ca/lexical/packages/lib）
+    const nodes = selection.getNodes();
+    let commonFontSize: string | null = null;
+    let isFontSizeMixed = false;
+    let parentElement = anchorNode.getParent();
+    while (parentElement !== null && parentElement.isInline()) {
+      parentElement = parentElement.getParent();
+    }
+    let blockDefaultFontSize = '16px';
+    if (parentElement && $isHeadingNode(parentElement)) {
+      blockDefaultFontSize =
+        HEADING_FONT_SIZE_MAP[parentElement.getTag()] ?? '16px';
+    }
+    for (const node of nodes) {
+      if (!$isTextNode(node)) continue;
+      const style = node.getStyle();
+      const match = style.match(/font-size:\s*([^;]+)/);
+      const nodeFontSize = match?.[1]?.trim() ?? blockDefaultFontSize;
+      if (commonFontSize === null) {
+        commonFontSize = nodeFontSize;
+      } else if (commonFontSize !== nodeFontSize) {
+        isFontSizeMixed = true;
+        break;
+      }
+    }
+    setFontSize(
+      isFontSizeMixed ? MIXED_FONT_SIZE : commonFontSize ?? blockDefaultFontSize,
     );
     const formatType = element.getFormatType?.() ?? '';
     setActiveAlign((formatType || 'left') as AlignType);
@@ -235,7 +271,7 @@ export function Toolbar({
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
-        $patchStyleText(selection, { 'font-size': size ? `${size}px` : '' });
+        $patchStyleText(selection, { 'font-size': size || '' });
       }
     });
   };

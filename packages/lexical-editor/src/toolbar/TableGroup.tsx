@@ -19,9 +19,9 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { ColorList } from './ColorGroup';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
-import { BG_COLORS } from './constants';
 
 const initialState = {
   inTable: false,
@@ -106,13 +106,13 @@ export function TableGroup() {
       if ($isTableSelection(selection)) {
         for (const node of selection.getNodes()) {
           if ($isTableCellNode(node)) {
-            node.setBackgroundColor(color);
+            node.setBackgroundColor(color || null);
           }
         }
       } else if ($isRangeSelection(selection)) {
         const cell = $findCellNode(selection.anchor.getNode());
         if (cell !== null) {
-          cell.setBackgroundColor(color);
+          cell.setBackgroundColor(color || null);
         }
       }
     });
@@ -197,29 +197,15 @@ export function TableGroup() {
             anchorRef={bgRef}
             open={bgOpen}
             onClose={() => setBgOpen(false)}
-            className="grid w-40 grid-cols-5 gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
+            className="w-72 rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
           >
-            {BG_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className="h-6 w-6 rounded border border-gray-200 transition-transform hover:scale-110"
-                style={{ backgroundColor: c }}
-                title={c}
-                onClick={() => {
-                  setCellBackground(c);
-                  setBgOpen(false);
-                }}
-              />
-            ))}
-            <label className="col-span-5 mt-1 flex items-center gap-1 text-xs text-gray-500">
-              <input
-                type="color"
-                className="h-6 w-8 cursor-pointer rounded border border-gray-200"
-                onChange={(e) => setCellBackground(e.target.value)}
-              />
-              Custom
-            </label>
+            <ColorList
+              group="background"
+              title="单元格背景色"
+              value={state.backgroundColor}
+              onSelect={setCellBackground}
+              onClose={() => setBgOpen(false)}
+            />
           </ToolbarPopup>
         )}
       </div>

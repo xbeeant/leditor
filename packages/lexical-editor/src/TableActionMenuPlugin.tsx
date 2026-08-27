@@ -35,24 +35,13 @@ import {
   Trash2,
 } from 'lucide-react';
 import { type JSX, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ColorList } from './toolbar/ColorGroup';
 
 interface MenuState {
   x: number;
   y: number;
   cellKey: string;
 }
-
-/** Preset palette for cell background color. */
-const CELL_BACKGROUNDS = [
-  '#ffffff',
-  '#fef9c3',
-  '#dcfce7',
-  '#dbeafe',
-  '#fee2e2',
-  '#fce7f3',
-  '#f3e8ff',
-  '#e5e7eb',
-];
 
 /** Horizontal alignment options (applied to paragraphs inside the cell). */
 const H_ALIGNS = [
@@ -114,6 +103,7 @@ export function TableActionMenuPlugin(): JSX.Element | null {
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [isTableSelection, setIsTableSelection] = useState(false);
   const [isMergedCell, setIsMergedCell] = useState(false);
+  const [cellBgColor, setCellBgColor] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState<{ left: number; top: number } | null>(
     null,
@@ -166,6 +156,19 @@ export function TableActionMenuPlugin(): JSX.Element | null {
           },
           { editor },
         ),
+      );
+      setCellBgColor(
+        editor
+          .getEditorState()
+          .read(
+            () => {
+              const node = $getNodeByKey(cellKey);
+              return node && $isTableCellNode(node)
+                ? (node.getBackgroundColor() ?? '')
+                : '';
+            },
+            { editor },
+          ),
       );
       setMenu({ x: event.clientX, y: event.clientY, cellKey });
     };
@@ -237,7 +240,7 @@ export function TableActionMenuPlugin(): JSX.Element | null {
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 max-h-[calc(100vh-16px)] w-60 overflow-y-auto rounded border border-gray-200 bg-white py-1 text-sm shadow-xl"
+      className="fixed z-50 max-h-[calc(100vh-16px)] w-64 overflow-y-auto rounded border border-gray-200 bg-white py-1 text-sm shadow-xl"
       style={{
         left: menuPos?.left ?? -9999,
         top: menuPos?.top ?? -9999,
@@ -301,27 +304,15 @@ export function TableActionMenuPlugin(): JSX.Element | null {
         </>
       )}
       <div className="my-1 border-t border-gray-100" />
-      <MenuLabel>Cell background</MenuLabel>
-      <div className="flex flex-wrap items-center gap-1 px-3 pb-2">
-        <button
-          type="button"
-          title="No background"
-          className="flex h-5 w-5 items-center justify-center rounded border border-gray-300 text-[10px] text-gray-400 transition-colors hover:bg-gray-100"
-          onClick={() => applyToCells((c) => c.setBackgroundColor(null))}
-        >
-          ∅
-        </button>
-        {CELL_BACKGROUNDS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            title={color}
-            className="h-5 w-5 rounded border border-gray-300 transition-transform hover:scale-110"
-            style={{ backgroundColor: color }}
-            onClick={() => applyToCells((c) => c.setBackgroundColor(color))}
-          />
-        ))}
-      </div>
+      <ColorList
+        group="background"
+        title="Cell background"
+        value={cellBgColor}
+        onSelect={(value) =>
+          applyToCells((c) => c.setBackgroundColor(value || null))
+        }
+        onClose={() => setMenu(null)}
+      />
       <div className="my-1 border-t border-gray-100" />
       <MenuLabel>Horizontal align</MenuLabel>
       <div className="flex gap-1 px-3 pb-2">

@@ -25,6 +25,7 @@ import { ImageNode } from './ImageNode';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
+import { TablePlugin } from './TablePlugin';
 import { TableOfContents } from './TableOfContents';
 import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
 import { CommentExtension } from './comment/CommentExtension';
@@ -121,6 +122,7 @@ export function Editor({
           {toc && pinned && <TableOfContents pinned={pinned} />}
           {showComments && <CommentPanel />}
         </div>
+        <TablePlugin />
         <TableActionMenuPlugin />
         <FloatingTableActionsPlugin />
         <TableDragSelectFix />
