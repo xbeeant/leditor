@@ -9,7 +9,13 @@ import {
   type RangeSelection,
 } from 'lexical';
 import { Loader2, MessageSquare, Send, Trash2, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   TOGGLE_COMMENT_INPUT_COMMAND,
@@ -41,7 +47,54 @@ interface Position {
   left: number;
 }
 
-function getSelectionRect(): Position | null {
+/** Viewport-space rect of the current selection (top / left / bottom). */
+interface AnchorRect {
+  top: number;
+  left: number;
+  bottom: number;
+}
+
+interface BubbleState {
+  threadID: string;
+  rect: AnchorRect;
+}
+
+/** Gap between the popover and the selection it anchors to. */
+const POPOVER_GAP = 12;
+
+/**
+ * Fit a fixed-position popover inside the viewport. `preferAbove` keeps the
+ * default side (above the selection for the bubble, below for the composer)
+ * and flips to the other side only when there is not enough space.
+ */
+function fitPopover(
+  anchor: AnchorRect,
+  width: number,
+  height: number,
+  preferAbove: boolean,
+): Position {
+  const gap = POPOVER_GAP;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const fitsAbove = anchor.top - gap - height >= gap;
+  const fitsBelow = anchor.bottom + gap + height <= vh - gap;
+  let top: number;
+  if (preferAbove) {
+    top = fitsAbove
+      ? anchor.top - gap - height
+      : anchor.bottom + gap; // flip below when no room above
+  } else {
+    top = fitsBelow
+      ? anchor.bottom + gap
+      : anchor.top - gap - height; // flip above when no room below
+  }
+  // Keep the whole popover inside the viewport vertically and horizontally.
+  top = Math.max(gap, Math.min(top, vh - height - gap));
+  const left = Math.max(gap, Math.min(anchor.left, vw - width - gap));
+  return { top, left };
+}
+
+function getSelectionRect(): DOMRect | null {
   const domSelection = window.getSelection();
   if (!domSelection || domSelection.rangeCount === 0) {
     return null;
@@ -50,7 +103,7 @@ function getSelectionRect(): Position | null {
   if (rect.width === 0 && rect.height === 0) {
     return null;
   }
-  return { top: rect.top, left: rect.left };
+  return rect;
 }
 
 function restoreSelection(saved: SavedSelection): RangeSelection {
@@ -69,15 +122,20 @@ function restoreSelection(saved: SavedSelection): RangeSelection {
 export function CommentPlugin() {
   const [editor] = useLexicalComposerContext();
   const savedSelection = useRef<SavedSelection | null>(null);
+  /** Thread whose comments were last loaded, so typing inside a mark
+   *  doesn't re-fetch on every keystroke. */
+  const loadedThreadRef = useRef<string | null>(null);
 
   const [inputOpen, setInputOpen] = useState(false);
-  const [inputPos, setInputPos] = useState<Position | null>(null);
+  const [inputPos, setInputPos] = useState<DOMRect | null>(null);
   const [inputText, setInputText] = useState('');
   const [inputSaving, setInputSaving] = useState(false);
+  const [inputFinalPos, setInputFinalPos] = useState<Position | null>(null);
+  const inputRef = useRef<HTMLDivElement | null>(null);
 
-  const [bubble, setBubble] = useState<
-    (Position & { threadID: string }) | null
-  >(null);
+  const [bubble, setBubble] = useState<BubbleState | null>(null);
+  const [bubblePos, setBubblePos] = useState<Position | null>(null);
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -130,7 +188,8 @@ export function CommentPlugin() {
       editorState.read(() => {
         const selection = $getSelection();
         if (!selection || !$isRangeSelection(selection)) {
-          setBubble(null);
+          loadedThreadRef.current = null;
+          setBubble((prev) => (prev ? null : prev));
           return;
         }
         const anchor = selection.anchor;
@@ -143,11 +202,26 @@ export function CommentPlugin() {
           setBubble((prev) =>
             prev && prev.threadID === threadID
               ? prev
-              : { threadID, top: rect?.top ?? 0, left: rect?.left ?? 0 },
+              : rect
+                ? {
+                    threadID,
+                    rect: {
+                      top: rect.top,
+                      left: rect.left,
+                      bottom: rect.bottom,
+                    },
+                  }
+                : prev,
           );
-          loadComments(threadID);
+          // Load once per thread; add/reply/delete flows already reload
+          // explicitly, so typing inside a mark won't re-fetch on each key.
+          if (threadID !== loadedThreadRef.current) {
+            loadedThreadRef.current = threadID;
+            loadComments(threadID);
+          }
         } else {
-          setBubble(null);
+          loadedThreadRef.current = null;
+          setBubble((prev) => (prev ? null : prev));
         }
       });
     });
@@ -174,7 +248,14 @@ export function CommentPlugin() {
       setInputText('');
       savedSelection.current = null;
       if (inputPos) {
-        setBubble({ threadID, top: inputPos.top, left: inputPos.left });
+        setBubble({
+          threadID,
+          rect: {
+            top: inputPos.top,
+            left: inputPos.left,
+            bottom: inputPos.bottom,
+          },
+        });
       }
       setComments(await mockCommentsApi.fetchComments(threadID));
       notifyCommentsChanged();
@@ -212,12 +293,78 @@ export function CommentPlugin() {
     notifyCommentsChanged();
   };
 
+  // Measure the popovers and keep them fully inside the viewport:
+  // the bubble prefers to sit above the selection, the composer below it,
+  // and each flips to the other side when there is no room (e.g. selection
+  // at the very top / bottom of the screen).
+  useLayoutEffect(() => {
+    const el = bubbleRef.current;
+    if (!bubble) {
+      setBubblePos(null);
+      return;
+    }
+    if (!el) {
+      return;
+    }
+    const update = () => {
+      setBubblePos(
+        fitPopover(bubble.rect, el.offsetWidth, el.offsetHeight, true),
+      );
+    };
+    update();
+    // Re-fit whenever the popover's size changes (e.g. comments finish
+    // loading and the list grows taller) or the window resizes, so the
+    // bubble never overflows the viewport bottom / top.
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [bubble]);
+
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!inputOpen || !inputPos) {
+      setInputFinalPos(null);
+      return;
+    }
+    if (!el) {
+      return;
+    }
+    const anchor = {
+      top: inputPos.top,
+      left: inputPos.left,
+      bottom: inputPos.bottom,
+    };
+    const update = () => {
+      setInputFinalPos(
+        fitPopover(anchor, el.offsetWidth, el.offsetHeight, false),
+      );
+    };
+    update();
+    // Same as the bubble: keep the composer fully inside the viewport even
+    // if its size changes or the window resizes.
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [inputOpen, inputPos]);
+
   return createPortal(
     <>
       {inputOpen && inputPos && (
         <div
+          ref={inputRef}
           className="fixed z-50 w-72"
-          style={{ top: inputPos.top + 14, left: inputPos.left }}
+          style={{
+            top: inputFinalPos?.top ?? -9999,
+            left: inputFinalPos?.left ?? -9999,
+          }}
         >
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25)]">
             <div className="mb-2 flex items-center justify-between">
@@ -266,8 +413,12 @@ export function CommentPlugin() {
 
       {bubble && (
         <div
-          className="fixed z-50 w-72 -translate-y-full"
-          style={{ top: bubble.top - 10, left: bubble.left }}
+          ref={bubbleRef}
+          className="fixed z-50 w-72"
+          style={{
+            top: bubblePos?.top ?? -9999,
+            left: bubblePos?.left ?? -9999,
+          }}
         >
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25)]">
             <div className="mb-2 flex items-center justify-between">

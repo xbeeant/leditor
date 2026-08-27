@@ -3,9 +3,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import {
   $getRoot,
   $isElementNode,
-  COMMAND_PRIORITY_LOW,
+  type LexicalEditor,
   type LexicalNode,
-  SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import { Loader2, MessageSquare, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -54,6 +53,24 @@ function latestTime(comments: CommentData[]): number {
 }
 
 /**
+ * Stable signature of every mark thread (id + quote text + mark key).
+ * Used to detect whether the mark structure *actually* changed (thread
+ * added/removed, or the quoted text was edited) so we only refresh the
+ * panel when needed instead of on every editor update (i.e. every keystroke).
+ */
+function readMarkSignature(editor: LexicalEditor): string {
+  return editor.getEditorState().read(() => {
+    const threads = $collectMarkThreads();
+    return Object.keys(threads)
+      .sort()
+      .map(
+        (id) => `${id}\u0000${threads[id].quote}\u0000${threads[id].markKey}`,
+      )
+      .join('|');
+  });
+}
+
+/**
  * Right-hand comment list panel, styled like the pinned table of contents.
  * Shows every comment thread in the document; clicking a thread scrolls to
  * (and selects) the highlighted range so the bubble opens there too.
@@ -63,18 +80,26 @@ export function CommentPanel() {
   const [threads, setThreads] = useState<PanelThread[]>([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
+  const markSignatureRef = useRef<string | null>(null);
+  const refreshTokenRef = useRef(0);
+  const loadedOnceRef = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!mounted.current) {
       return;
     }
-    setLoading(true);
+    const token = ++refreshTokenRef.current;
+    // Only show the full-height spinner on the first load; background
+    // refreshes (e.g. editing the highlighted text) must not flicker.
+    if (!loadedOnceRef.current) {
+      setLoading(true);
+    }
     try {
       const markThreads = editor
         .getEditorState()
         .read(() => $collectMarkThreads());
       const all = await mockCommentsApi.fetchComments();
-      if (!mounted.current) {
+      if (!mounted.current || token !== refreshTokenRef.current) {
         return;
       }
       const grouped: Record<string, CommentData[]> = {};
@@ -96,34 +121,32 @@ export function CommentPanel() {
       list.sort((a, b) => latestTime(b.comments) - latestTime(a.comments));
       setThreads(list);
     } finally {
-      if (mounted.current) {
+      if (mounted.current && token === refreshTokenRef.current) {
+        loadedOnceRef.current = true;
         setLoading(false);
       }
     }
   }, [editor]);
 
-  // Refresh when the document changes (mark added/removed) or when the
-  // comment store changes (reply / delete from the bubble).
+  // Refresh when the comment store changes (reply / delete from the bubble)
+  // or when the mark structure actually changed (thread added/removed or the
+  // quoted text was edited) — NOT on every editor update / keystroke.
   useEffect(() => {
     mounted.current = true;
+    markSignatureRef.current = readMarkSignature(editor);
     refresh();
     const unregisterUpdate = editor.registerUpdateListener(() => {
-      refresh();
-    });
-    const unregisterSelection = editor.registerCommand(
-      SELECTION_CHANGE_COMMAND,
-      () => {
+      const signature = readMarkSignature(editor);
+      if (signature !== markSignatureRef.current) {
+        markSignatureRef.current = signature;
         refresh();
-        return false;
-      },
-      COMMAND_PRIORITY_LOW,
-    );
+      }
+    });
     const onStoreChange = () => refresh();
     window.addEventListener('leditor:comments-changed', onStoreChange);
     return () => {
       mounted.current = false;
       unregisterUpdate();
-      unregisterSelection();
       window.removeEventListener('leditor:comments-changed', onStoreChange);
     };
   }, [editor, refresh]);
