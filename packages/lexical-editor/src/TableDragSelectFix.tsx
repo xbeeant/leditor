@@ -33,17 +33,20 @@ function getTableCellAtPoint(
   }
   let cell: TableCellNode | null = null;
   let table: TableNode | null = null;
-  editor.getEditorState().read(() => {
-    const lexicalNode = $getNearestNodeFromDOMNode(node);
-    if (lexicalNode === null) {
-      return;
-    }
-    cell = $findCellNode(lexicalNode);
-    if (cell === null) {
-      return;
-    }
-    table = $findTableNode(cell);
-  });
+  editor.getEditorState().read(
+    () => {
+      const lexicalNode = $getNearestNodeFromDOMNode(node);
+      if (lexicalNode === null) {
+        return;
+      }
+      cell = $findCellNode(lexicalNode);
+      if (cell === null) {
+        return;
+      }
+      table = $findTableNode(cell);
+    },
+    { editor },
+  );
   return { cell, table };
 }
 
@@ -94,12 +97,15 @@ export function TableDragSelectFix(): null {
         return null;
       }
       let cellNode: TableCellNode | null = null;
-      editor.getEditorState().read(() => {
-        const lexicalNode = $getNearestNodeFromDOMNode(closest);
-        if (lexicalNode !== null && $isTableCellNode(lexicalNode)) {
-          cellNode = lexicalNode;
-        }
-      });
+      editor.getEditorState().read(
+        () => {
+          const lexicalNode = $getNearestNodeFromDOMNode(closest);
+          if (lexicalNode !== null && $isTableCellNode(lexicalNode)) {
+            cellNode = lexicalNode;
+          }
+        },
+        { editor },
+      );
       return cellNode;
     };
 

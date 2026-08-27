@@ -150,17 +150,22 @@ export function TableActionMenuPlugin(): JSX.Element | null {
       // Detect whether multiple cells are selected (drag-select) so the
       // "Merge cells" action can be offered; also detect if the clicked
       // cell is itself a merged cell so "Split cell" can be offered.
-      const sel = editor.getEditorState().read(() => $getSelection());
+      const sel = editor
+        .getEditorState()
+        .read(() => $getSelection(), { editor });
       setIsTableSelection($isTableSelection(sel));
       setIsMergedCell(
-        editor.getEditorState().read(() => {
-          const node = $getNodeByKey(cellKey);
-          return (
-            !!node &&
-            $isTableCellNode(node) &&
-            (node.getColSpan() > 1 || node.getRowSpan() > 1)
-          );
-        }),
+        editor.getEditorState().read(
+          () => {
+            const node = $getNodeByKey(cellKey);
+            return (
+              !!node &&
+              $isTableCellNode(node) &&
+              (node.getColSpan() > 1 || node.getRowSpan() > 1)
+            );
+          },
+          { editor },
+        ),
       );
       setMenu({ x: event.clientX, y: event.clientY, cellKey });
     };

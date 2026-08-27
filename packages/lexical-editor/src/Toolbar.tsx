@@ -321,23 +321,29 @@ export function Toolbar() {
   };
 
   const toggleLink = () => {
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
-      const node = selection.anchor.getNode();
-      if ($isLinkNode(node) || node.getParents().some((n) => $isLinkNode(n))) {
-        setLinkUrl('');
+    editor.getEditorState().read(
+      () => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return;
+        const node = selection.anchor.getNode();
+        if (
+          $isLinkNode(node) ||
+          node.getParents().some((n) => $isLinkNode(n))
+        ) {
+          setLinkUrl('');
+          setLinkEditorOpen(true);
+          return;
+        }
+        const linkParent = node.getParents().find((n) => $isLinkNode(n));
+        if (linkParent) {
+          setLinkUrl(linkParent.getURL());
+        } else {
+          setLinkUrl('');
+        }
         setLinkEditorOpen(true);
-        return;
-      }
-      const linkParent = node.getParents().find((n) => $isLinkNode(n));
-      if (linkParent) {
-        setLinkUrl(linkParent.getURL());
-      } else {
-        setLinkUrl('');
-      }
-      setLinkEditorOpen(true);
-    });
+      },
+      { editor },
+    );
   };
 
   const commitLink = () => {

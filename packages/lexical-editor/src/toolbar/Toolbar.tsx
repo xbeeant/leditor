@@ -270,18 +270,21 @@ export function Toolbar({
   };
 
   const toggleLink = () => {
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
-      const node = selection.anchor.getNode();
-      const linkParent = node.getParents().find((n) => $isLinkNode(n));
-      if (linkParent) {
-        setLinkUrl(linkParent.getURL());
-      } else {
-        setLinkUrl('');
-      }
-      setLinkEditorOpen((v) => !v);
-    });
+    editor.getEditorState().read(
+      () => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return;
+        const node = selection.anchor.getNode();
+        const linkParent = node.getParents().find((n) => $isLinkNode(n));
+        if (linkParent) {
+          setLinkUrl(linkParent.getURL());
+        } else {
+          setLinkUrl('');
+        }
+        setLinkEditorOpen((v) => !v);
+      },
+      { editor },
+    );
   };
 
   const commitLink = () => {

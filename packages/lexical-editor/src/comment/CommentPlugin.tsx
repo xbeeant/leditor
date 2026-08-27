@@ -79,13 +79,9 @@ function fitPopover(
   const fitsBelow = anchor.bottom + gap + height <= vh - gap;
   let top: number;
   if (preferAbove) {
-    top = fitsAbove
-      ? anchor.top - gap - height
-      : anchor.bottom + gap; // flip below when no room above
+    top = fitsAbove ? anchor.top - gap - height : anchor.bottom + gap; // flip below when no room above
   } else {
-    top = fitsBelow
-      ? anchor.bottom + gap
-      : anchor.top - gap - height; // flip above when no room below
+    top = fitsBelow ? anchor.bottom + gap : anchor.top - gap - height; // flip above when no room below
   }
   // Keep the whole popover inside the viewport vertically and horizontally.
   top = Math.max(gap, Math.min(top, vh - height - gap));
@@ -107,7 +103,11 @@ function getSelectionRect(): DOMRect | null {
 
 function restoreSelection(saved: SavedSelection): RangeSelection {
   const selection = $createRangeSelection();
-  selection.anchor.set(saved.anchor.key, saved.anchor.offset, saved.anchor.type);
+  selection.anchor.set(
+    saved.anchor.key,
+    saved.anchor.offset,
+    saved.anchor.type,
+  );
   selection.focus.set(saved.focus.key, saved.focus.offset, saved.focus.type);
   $setSelection(selection);
   return selection;
@@ -150,19 +150,22 @@ export function CommentPlugin() {
   }, []);
 
   const openInput = useCallback(() => {
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection) || selection.isCollapsed()) {
-        return;
-      }
-      const { anchor, focus } = selection;
-      savedSelection.current = {
-        anchor: { key: anchor.key, offset: anchor.offset, type: anchor.type },
-        focus: { key: focus.key, offset: focus.offset, type: focus.type },
-      };
-      setInputPos(getSelectionRect());
-      setInputOpen(true);
-    });
+    editor.getEditorState().read(
+      () => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection) || selection.isCollapsed()) {
+          return;
+        }
+        const { anchor, focus } = selection;
+        savedSelection.current = {
+          anchor: { key: anchor.key, offset: anchor.offset, type: anchor.type },
+          focus: { key: focus.key, offset: focus.offset, type: focus.type },
+        };
+        setInputPos(getSelectionRect());
+        setInputOpen(true);
+      },
+      { editor },
+    );
   }, [editor]);
 
   // Toggle the comment composer (dispatched from the toolbar button).
@@ -192,8 +195,7 @@ export function CommentPlugin() {
           return;
         }
         const anchor = selection.anchor;
-        const node =
-          anchor.type === 'text' ? anchor.getNode() : undefined;
+        const node = anchor.type === 'text' ? anchor.getNode() : undefined;
         const ids = node ? $getMarkIDs(node, anchor.offset) : null;
         if (ids && ids.length > 0) {
           const threadID = ids[0];
@@ -446,10 +448,7 @@ export function CommentPlugin() {
                 </p>
               ) : (
                 comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="rounded-xl bg-gray-50 p-2.5"
-                  >
+                  <div key={comment.id} className="rounded-xl bg-gray-50 p-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-gray-700">
                         {comment.author}

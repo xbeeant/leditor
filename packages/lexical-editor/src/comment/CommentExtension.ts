@@ -1,7 +1,7 @@
 import {
-  $wrapSelectionInMarkNode,
   $isMarkNode,
   $unwrapMarkNode,
+  $wrapSelectionInMarkNode,
   MarkExtension,
   type MarkNode,
 } from '@lexical/mark';
@@ -11,12 +11,19 @@ import {
   $isElementNode,
   $isRangeSelection,
   COMMAND_PRIORITY_EDITOR,
-  defineExtension,
   type LexicalNode,
+  defineExtension,
 } from 'lexical';
-import { UNWRAP_MARK_COMMAND, WRAP_SELECTION_IN_MARK_COMMAND } from './commentCommands';
+import {
+  UNWRAP_MARK_COMMAND,
+  WRAP_SELECTION_IN_MARK_COMMAND,
+} from './commentCommands';
 
-function collectMarks(node: LexicalNode, threadID: string, marks: MarkNode[]): void {
+function collectMarks(
+  node: LexicalNode,
+  threadID: string,
+  marks: MarkNode[],
+): void {
   if ($isMarkNode(node) && node.hasID(threadID)) {
     marks.push(node);
   }

@@ -66,18 +66,24 @@ export function TableOfContents({ pinned }: TableOfContentsProps) {
 
   useEffect(() => {
     const refresh = () => {
-      editor.getEditorState().read(() => {
-        setItems($getHeadingList());
-      });
+      editor.getEditorState().read(
+        () => {
+          setItems($getHeadingList());
+        },
+        { editor },
+      );
     };
     refresh();
     const unregisterUpdate = editor.registerUpdateListener(refresh);
     const unregisterSelection = editor.registerCommand(
       SELECTION_CHANGE_COMMAND,
       () => {
-        editor.getEditorState().read(() => {
-          setActiveKey($getActiveHeadingKey());
-        });
+        editor.getEditorState().read(
+          () => {
+            setActiveKey($getActiveHeadingKey());
+          },
+          { editor },
+        );
         return false;
       },
       COMMAND_PRIORITY_LOW,

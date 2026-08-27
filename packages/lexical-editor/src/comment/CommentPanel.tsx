@@ -23,7 +23,10 @@ interface PanelThread {
 }
 
 /** Collect every MarkNode in the tree: threadID -> quote text + mark key. */
-function $collectMarkThreads(): Record<string, { quote: string; markKey: string }> {
+function $collectMarkThreads(): Record<
+  string,
+  { quote: string; markKey: string }
+> {
   const threads: Record<string, { quote: string; markKey: string }> = {};
   const visit = (node: LexicalNode) => {
     if ($isMarkNode(node)) {
@@ -59,15 +62,18 @@ function latestTime(comments: CommentData[]): number {
  * panel when needed instead of on every editor update (i.e. every keystroke).
  */
 function readMarkSignature(editor: LexicalEditor): string {
-  return editor.getEditorState().read(() => {
-    const threads = $collectMarkThreads();
-    return Object.keys(threads)
-      .sort()
-      .map(
-        (id) => `${id}\u0000${threads[id].quote}\u0000${threads[id].markKey}`,
-      )
-      .join('|');
-  });
+  return editor.getEditorState().read(
+    () => {
+      const threads = $collectMarkThreads();
+      return Object.keys(threads)
+        .sort()
+        .map(
+          (id) => `${id}\u0000${threads[id].quote}\u0000${threads[id].markKey}`,
+        )
+        .join('|');
+    },
+    { editor },
+  );
 }
 
 /**
@@ -111,8 +117,7 @@ export function CommentPanel() {
           threadID,
           comments: comments.sort(
             (a, b) =>
-              new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime(),
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
           ),
           quote: markThreads[threadID]?.quote ?? '',
           markKey: markThreads[threadID]?.markKey ?? null,

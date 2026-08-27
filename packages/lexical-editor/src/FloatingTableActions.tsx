@@ -170,11 +170,13 @@ function FloatingTableActions(): JSX.Element | null {
       // 表格变化时刷新可拖拽状态（无合并单元格才允许重排）。
       if (hoveredTableRef.current !== tableElement) {
         hoveredTableRef.current = tableElement;
-        const tableNode = editor
-          .getEditorState()
-          .read(() => $getNearestNodeFromDOMNode(tableElement));
-        const nextCanReorder =
-          $isTableNode(tableNode) && $isSimpleTable(tableNode);
+        const nextCanReorder = editor.getEditorState().read(
+          () => {
+            const tableNode = $getNearestNodeFromDOMNode(tableElement);
+            return $isTableNode(tableNode) && $isSimpleTable(tableNode);
+          },
+          { editor },
+        );
         canReorderRef.current = nextCanReorder;
         setCanReorder(nextCanReorder);
       }
@@ -299,13 +301,13 @@ function FloatingTableActions(): JSX.Element | null {
       }
       const boundaryIndex = boundaryRef.current ?? drag.startIndex;
       boundaryRef.current = null;
-      const tableNode = editor
-        .getEditorState()
-        .read(() => $getNodeByKey(drag.tableKey));
-      if (!$isTableNode(tableNode)) {
-        return;
-      }
-      const columnCount = tableNode.getColumnCount();
+      const columnCount = editor.getEditorState().read(
+        () => {
+          const node = $getNodeByKey(drag.tableKey);
+          return $isTableNode(node) ? node.getColumnCount() : 0;
+        },
+        { editor },
+      );
       const clampedBoundary = Math.max(0, Math.min(boundaryIndex, columnCount));
       const startIndex = drag.startIndex;
       if (
@@ -319,7 +321,10 @@ function FloatingTableActions(): JSX.Element | null {
       const finishIndex =
         clampedBoundary > startIndex ? clampedBoundary - 1 : clampedBoundary;
       editor.update(() => {
-        $moveTableColumn(tableNode, startIndex, finishIndex);
+        const node = $getNodeByKey(drag.tableKey);
+        if ($isTableNode(node)) {
+          $moveTableColumn(node, startIndex, finishIndex);
+        }
       });
     };
 
@@ -374,7 +379,7 @@ function FloatingTableActions(): JSX.Element | null {
     }
     const tableNode = editor
       .getEditorState()
-      .read(() => $getNearestNodeFromDOMNode(tableElement));
+      .read(() => $getNearestNodeFromDOMNode(tableElement), { editor });
     if (!$isTableNode(tableNode)) {
       return;
     }
