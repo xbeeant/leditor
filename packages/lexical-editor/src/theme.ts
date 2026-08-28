@@ -16,7 +16,9 @@ export const editorTheme = {
     nested: {
       listitem: 'list-none',
     },
-    checklist: 'list-none pl-1 my-2',
+    checklist: 'leditor-checklist',
+    listitemChecked: 'leditor-checklist-item leditor-checklist-item-checked',
+    listitemUnchecked: 'leditor-checklist-item',
   },
   text: {
     bold: 'font-bold',

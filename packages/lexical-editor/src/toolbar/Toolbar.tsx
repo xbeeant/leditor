@@ -1,12 +1,14 @@
 import { $createCodeNode, $isCodeNode } from '@lexical/code-core';
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import {
+  $createLinkNode,
+  $isLinkNode,
+  TOGGLE_LINK_COMMAND,
+} from '@lexical/link';
 import {
   $createListItemNode,
   $createListNode,
   $isListNode,
   INSERT_CHECK_LIST_COMMAND,
-  INSERT_ORDERED_LIST_COMMAND,
-  INSERT_UNORDERED_LIST_COMMAND,
   REMOVE_LIST_COMMAND,
 } from '@lexical/list';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -17,10 +19,15 @@ import {
   $isHeadingNode,
   $isQuoteNode,
 } from '@lexical/rich-text';
-import { $patchStyleText, $setBlocksType, $getSelectionStyleValueForProperty } from '@lexical/selection';
+import {
+  $getSelectionStyleValueForProperty,
+  $patchStyleText,
+  $setBlocksType,
+} from '@lexical/selection';
 import { $findCellNode, $isTableSelection } from '@lexical/table';
 import {
   $createParagraphNode,
+  $createTextNode,
   $getSelection,
   $isRangeSelection,
   $isTextNode,
@@ -39,12 +46,17 @@ import { List, MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { $createImageNode } from '../ImageNode';
 import {
+  $createListStyleNode,
+  $insertListStyle,
+  type ExtendedListType,
+} from '../ListStyleNode';
+import { $createRubyNode } from '../RubyNode';
+import {
   $createTable,
   insertBlockAfter,
   insertParagraphAfter,
 } from '../commands';
 import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
-import { HEADING_FONT_SIZE_MAP, MIXED_FONT_SIZE } from './constants';
 import { AlignGroup } from './AlignGroup';
 import { BlockGroup } from './BlockGroup';
 import { ClearFormatGroup } from './ClearFormatGroup';
@@ -53,12 +65,15 @@ import { FontGroup } from './FontGroup';
 import { HistoryGroup } from './HistoryGroup';
 import { InsertGroup } from './InsertGroup';
 import { LinkGroup } from './LinkGroup';
+import { RubyGroup } from './RubyGroup';
 import { TableGroup } from './TableGroup';
 import { TextFormatGroup } from './TextFormatGroup';
 import { ToolbarDivider } from './ToolbarDivider';
+import { HEADING_FONT_SIZE_MAP, MIXED_FONT_SIZE } from './constants';
 import type {
   AlignType,
   BlockType,
+  BulletStyleType,
   InsertBlockType,
   TextFormat,
 } from './types';
@@ -136,10 +151,20 @@ export function Toolbar({
       setBlockType(
         listType === 'bullet'
           ? 'bullet'
-          : listType === 'number'
-            ? 'number'
-            : 'check',
+          : listType === 'check'
+            ? 'check'
+            : listType === 'number' ||
+                listType === 'lower-alpha' ||
+                listType === 'upper-alpha' ||
+                listType === 'lower-roman' ||
+                listType === 'upper-roman'
+              ? (listType as BlockType)
+              : 'number',
       );
+      // 读取无序列表的标记样式
+      if (listType === 'bullet') {
+        // bullet list style is tracked internally, no state needed
+      }
     } else if ($isHeadingNode(element)) {
       setBlockType(element.getTag() as BlockType);
     } else if ($isQuoteNode(element)) {
@@ -159,7 +184,9 @@ export function Toolbar({
     setFontFamily(
       $getSelectionStyleValueForProperty(selection, 'font-family', 'Arial'),
     );
-    setFontColor($getSelectionStyleValueForProperty(selection, 'color', '#000000'));
+    setFontColor(
+      $getSelectionStyleValueForProperty(selection, 'color', '#000000'),
+    );
     setBgColor(
       $getSelectionStyleValueForProperty(
         selection,
@@ -173,7 +200,7 @@ export function Toolbar({
     let commonFontSize: string | null = null;
     let isFontSizeMixed = false;
     let parentElement = anchorNode.getParent();
-    while (parentElement !== null && parentElement.isInline()) {
+    while (parentElement?.isInline()) {
       parentElement = parentElement.getParent();
     }
     let blockDefaultFontSize = '16px';
@@ -194,7 +221,9 @@ export function Toolbar({
       }
     }
     setFontSize(
-      isFontSizeMixed ? MIXED_FONT_SIZE : commonFontSize ?? blockDefaultFontSize,
+      isFontSizeMixed
+        ? MIXED_FONT_SIZE
+        : (commonFontSize ?? blockDefaultFontSize),
     );
     const formatType = element.getFormatType?.() ?? '';
     setActiveAlign((formatType || 'left') as AlignType);
@@ -231,15 +260,30 @@ export function Toolbar({
 
   const applyBlockType = (value: BlockType) => {
     if (value === 'bullet') {
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+      editor.update(() => {
+        $insertListStyle('bullet');
+      });
       return;
     }
     if (value === 'number') {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      editor.update(() => {
+        $insertListStyle('number');
+      });
       return;
     }
     if (value === 'check') {
       editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
+      return;
+    }
+    if (
+      value === 'lower-alpha' ||
+      value === 'upper-alpha' ||
+      value === 'lower-roman' ||
+      value === 'upper-roman'
+    ) {
+      editor.update(() => {
+        $insertListStyle(value as ExtendedListType);
+      });
       return;
     }
     editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
@@ -254,6 +298,36 @@ export function Toolbar({
         $setBlocksType(selection, () => $createCodeNode());
       } else {
         $setBlocksType(selection, () => $createHeadingNode(value));
+      }
+    });
+  };
+
+  // 无序列表标记样式切换
+  const applyBulletStyle = (style: BulletStyleType) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+      const anchorNode = selection.anchor.getNode();
+      const topLevel =
+        anchorNode.getKey() === 'root'
+          ? anchorNode
+          : anchorNode.getTopLevelElementOrThrow();
+      if ($isListNode(topLevel) && topLevel.getListType() === 'bullet') {
+        // 已经是 bullet list，直接切换样式
+        topLevel.setStyle(`list-style-type:${style}`);
+      } else {
+        // 不是 bullet list，先切换为 bullet list，再设置样式
+        $insertListStyle('bullet');
+        const newSelection = $getSelection();
+        if (!$isRangeSelection(newSelection)) return;
+        const newNode = newSelection.anchor.getNode();
+        const newTop =
+          newNode.getKey() === 'root'
+            ? newNode
+            : newNode.getTopLevelElementOrThrow();
+        if ($isListNode(newTop) && newTop.getListType() === 'bullet') {
+          newTop.setStyle(`list-style-type:${style}`);
+        }
       }
     });
   };
@@ -327,9 +401,45 @@ export function Toolbar({
     const url = linkUrl.trim();
     if (url === '') {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
+      setLinkEditorOpen(false);
+      editor.focus();
+      return;
     }
+
+    // 校验 URL 格式
+    let finalUrl = url;
+    try {
+      new URL(url);
+    } catch {
+      try {
+        new URL(`https://${url}`);
+        finalUrl = `https://${url}`;
+      } catch {
+        return;
+      }
+    }
+
+    // 检查选区是否有内容
+    const hasSelection = editor.getEditorState().read(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return false;
+      return !selection.isCollapsed();
+    });
+
+    if (hasSelection) {
+      // 有选中文本，直接包裹为链接
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, finalUrl);
+    } else {
+      // 无选中文本，插入链接节点（显示 URL 文本）
+      editor.update(() => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return;
+        const linkNode = $createLinkNode(finalUrl);
+        linkNode.append($createTextNode(finalUrl));
+        selection.insertNodes([linkNode]);
+      });
+    }
+
     setLinkEditorOpen(false);
     editor.focus();
   };
@@ -372,7 +482,19 @@ export function Toolbar({
       case 'number':
       case 'check':
         insertBlockAfter(editor, () => {
-          const list = $createListNode(type);
+          const list = $createListNode(
+            type as Parameters<typeof $createListNode>[0],
+          );
+          list.append($createListItemNode());
+          return list;
+        });
+        break;
+      case 'lower-alpha':
+      case 'upper-alpha':
+      case 'lower-roman':
+      case 'upper-roman':
+        insertBlockAfter(editor, () => {
+          const list = $createListStyleNode(type as ExtendedListType);
           list.append($createListItemNode());
           return list;
         });
@@ -402,6 +524,26 @@ export function Toolbar({
     setCodeLanguage(language);
   };
 
+  const insertRuby = (text: string, annotation: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+
+      // 获取选中的文本
+      const selectedText = selection.getTextContent();
+      const rubyText = text || selectedText || annotation;
+
+      // 创建 ruby 节点
+      const rubyNode = $createRubyNode({
+        text: rubyText,
+        annotation,
+      });
+
+      // 替换选区内容
+      selection.insertNodes([rubyNode]);
+    });
+  };
+
   const toggleRTL = () => {
     editor.update(() => {
       const sel = $getSelection();
@@ -415,13 +557,61 @@ export function Toolbar({
   const clearFormatting = () => {
     editor.update(() => {
       const sel = $getSelection();
-      if ($isRangeSelection(sel)) {
-        $patchStyleText(sel, {
-          color: '',
-          'background-color': '',
-          'font-size': '',
-          'font-family': '',
-        });
+      if (!$isRangeSelection(sel)) return;
+
+      // 1. 清除文本格式（粗体、斜体、下划线等）
+      const textFormats: Array<TextFormat> = [
+        'bold',
+        'italic',
+        'underline',
+        'strikethrough',
+        'subscript',
+        'superscript',
+        'code',
+      ];
+      for (const format of textFormats) {
+        if (sel.hasFormat(format)) {
+          editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+        }
+      }
+
+      // 2. 清除内联样式
+      $patchStyleText(sel, {
+        color: '',
+        'background-color': '',
+        'font-size': '',
+        'font-family': '',
+        'font-weight': '',
+        'font-style': '',
+        'text-decoration': '',
+        'line-height': '',
+        'letter-spacing': '',
+      });
+
+      // 3. 块级元素转为段落
+      const nodes = sel.getNodes();
+      const changedBlocks = new Set<string>();
+      for (const node of nodes) {
+        let parent = node.getParent();
+        // 向上找到顶层元素（root 的直接子节点）
+        while (parent && parent.getParent()?.getKey() !== 'root') {
+          parent = parent.getParent();
+        }
+        if (!parent || parent.getKey() === 'root') continue;
+        const key = parent.getKey();
+        if (changedBlocks.has(key)) continue;
+
+        if ($isListNode(parent)) {
+          editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+          changedBlocks.add(key);
+        } else if (
+          $isHeadingNode(parent) ||
+          $isQuoteNode(parent) ||
+          $isCodeNode(parent)
+        ) {
+          $setBlocksType(sel, () => $createParagraphNode());
+          changedBlocks.add(key);
+        }
       }
     });
   };
@@ -429,7 +619,7 @@ export function Toolbar({
   return (
     <div
       ref={toolbarRef}
-      className="sticky top-0 z-10 flex flex-nowrap items-center gap-1 overflow-x-auto border-b border-gray-200 bg-gradient-to-b from-white to-gray-50/70 px-2 py-1.5 shadow-sm backdrop-blur [&>*]:shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="sticky top-0 z-10 flex flex-nowrap items-center gap-1 overflow-x-auto border-b border-gray-200 bg-linear-to-b from-white to-gray-50/70 px-2 py-1.5 shadow-sm backdrop-blur *:shrink-0 scrollbar-none"
     >
       <HistoryGroup
         canUndo={canUndo}
@@ -449,6 +639,7 @@ export function Toolbar({
         onBlockTypeChange={applyBlockType}
         codeLanguage={codeLanguage}
         onCodeLanguageChange={applyCodeLanguage}
+        onBulletStyleChange={applyBulletStyle}
       />
 
       <ToolbarDivider />
@@ -482,6 +673,8 @@ export function Toolbar({
         onCommit={commitLink}
         onClose={() => setLinkEditorOpen(false)}
       />
+
+      <RubyGroup onInsert={insertRuby} />
 
       <ToolbarDivider />
 

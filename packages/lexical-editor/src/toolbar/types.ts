@@ -7,6 +7,10 @@ export type BlockType =
   | 'bullet'
   | 'number'
   | 'check'
+  | 'lower-alpha'
+  | 'upper-alpha'
+  | 'lower-roman'
+  | 'upper-roman'
   | 'quote'
   | 'code';
 
@@ -32,6 +36,21 @@ export type InsertBlockType =
   | 'bullet'
   | 'number'
   | 'check'
+  | 'lower-alpha'
+  | 'upper-alpha'
+  | 'lower-roman'
+  | 'upper-roman'
   | 'table'
   | 'divider'
   | 'image';
+
+/** 独立列表插入按钮支持的格式 */
+export type ListFormatType =
+  | 'number'
+  | 'lower-alpha'
+  | 'upper-alpha'
+  | 'lower-roman'
+  | 'upper-roman';
+
+/** 无序列表标记样式 */
+export type BulletStyleType = 'disc' | 'circle' | 'square';

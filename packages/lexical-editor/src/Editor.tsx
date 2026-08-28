@@ -5,7 +5,7 @@ import {
 } from '@lexical/extension';
 import { HistoryExtension } from '@lexical/history';
 import { LinkExtension } from '@lexical/link';
-import { ListExtension } from '@lexical/list';
+import { CheckListExtension, ListExtension } from '@lexical/list';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalExtensionComposer } from '@lexical/react/LexicalExtensionComposer';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
@@ -22,11 +22,13 @@ import { useMemo, useRef, useState } from 'react';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
 import { FloatingTableActionsPlugin } from './FloatingTableActions';
 import { ImageNode } from './ImageNode';
+import { ListStyleNode } from './ListStyleNode';
+import { RubyNode } from './RubyNode';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
-import { TablePlugin } from './TablePlugin';
 import { TableOfContents } from './TableOfContents';
+import { TablePlugin } from './TablePlugin';
 import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
 import { CommentExtension } from './comment/CommentExtension';
 import { CommentPanel } from './comment/CommentPanel';
@@ -78,7 +80,7 @@ export function Editor({
         name: '@leditor/root',
         namespace: 'leditor',
         theme: editorTheme,
-        nodes: [ImageNode, HorizontalRuleNode],
+        nodes: [ImageNode, HorizontalRuleNode, ListStyleNode, RubyNode],
         dependencies: [
           // Render our own ContentEditable inside the custom layout below.
           configExtension(ReactExtension, { contentEditable: null }),
@@ -86,6 +88,7 @@ export function Editor({
           RichTextExtension,
           HistoryExtension,
           ListExtension,
+          CheckListExtension,
           LinkExtension,
           TableExtension,
           TabIndentationExtension,

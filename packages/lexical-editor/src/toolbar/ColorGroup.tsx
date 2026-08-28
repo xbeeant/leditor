@@ -27,6 +27,8 @@ interface ColorListProps {
   value: string;
   /** 可选的颜色枚举，默认使用 `colors` */
   palette?: ColorOption[];
+  /** 布局方式：grid 双列换行（默认）；column 单列纵向（用于左右分栏的窄栏） */
+  layout?: 'grid' | 'column';
   onSelect: (value: string) => void;
   onClose: () => void;
 }
@@ -36,17 +38,23 @@ export function ColorList({
   title,
   value,
   palette,
+  layout = 'grid',
   onSelect,
   onClose,
 }: ColorListProps) {
   const isSelected = (c: string) =>
     value === c || (value === 'transparent' && c === '');
   const list = palette ?? colors;
+  const isColumn = layout === 'column';
 
   return (
     <>
       <div className="px-3 pb-1 text-xs font-medium text-gray-500">{title}</div>
-      <div className="flex max-h-72 flex-col flex-wrap gap-y-0.5 overflow-y-auto px-1">
+      <div
+        className={`flex max-h-72 flex-col gap-y-0.5 overflow-y-auto px-1 ${
+          isColumn ? '' : 'flex-wrap'
+        }`}
+      >
         {list.map(({ value: c, label }) => (
           <button
             key={label}
@@ -55,9 +63,9 @@ export function ColorList({
               onSelect(c);
               onClose();
             }}
-            className={`flex w-1/2 min-w-0 items-center gap-1.5 rounded px-2 py-1 text-left text-sm transition-colors hover:bg-gray-100 ${
-              isSelected(c) ? 'text-blue-600' : 'text-gray-700'
-            }`}
+            className={`flex min-w-0 items-center gap-1.5 rounded px-2 py-1 text-left text-sm transition-colors hover:bg-gray-100 ${
+              isColumn ? 'w-full' : 'w-1/2'
+            } ${isSelected(c) ? 'text-blue-600' : 'text-gray-700'}`}
           >
             <ColorIcon group={group} value={c} />
             <span className="truncate">{label}</span>
@@ -118,21 +126,29 @@ export function ColorGroup({
           align="end"
           className="w-100 rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
         >
-          <ColorList
-            group="color"
-            title="文字颜色"
-            value={fontColor}
-            onSelect={onFontColorChange}
-            onClose={() => setOpen(false)}
-          />
-          <div className="my-2 border-t border-gray-100" />
-          <ColorList
-            group="background"
-            title="背景色"
-            value={bgColor}
-            onSelect={onBgColorChange}
-            onClose={() => setOpen(false)}
-          />
+          <div className="flex items-stretch">
+            <div className="min-w-0 flex-1">
+              <ColorList
+                group="color"
+                title="文字颜色"
+                value={fontColor}
+                layout="column"
+                onSelect={onFontColorChange}
+                onClose={() => setOpen(false)}
+              />
+            </div>
+            <div className="mx-1 w-px shrink-0 bg-gray-100" />
+            <div className="min-w-0 flex-1">
+              <ColorList
+                group="background"
+                title="背景色"
+                value={bgColor}
+                layout="column"
+                onSelect={onBgColorChange}
+                onClose={() => setOpen(false)}
+              />
+            </div>
+          </div>
         </ToolbarPopup>
       )}
     </div>

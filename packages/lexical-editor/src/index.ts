@@ -1,3 +1,4 @@
+import './checklist.css';
 import Editor from './Editor';
 import {
   TOGGLE_COMMENT_INPUT_COMMAND,

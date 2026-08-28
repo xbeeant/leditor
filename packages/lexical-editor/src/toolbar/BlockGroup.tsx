@@ -1,25 +1,119 @@
-import { ToolbarDropdown } from './ToolbarDropdown';
-import { CODE_LANGUAGES } from './constants';
+import { Check, ChevronDown } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { ToolbarPopup } from './ToolbarPopup';
 import type { BlockType } from './types';
 
-const BLOCK_OPTIONS = [
-  { value: 'paragraph', label: 'Normal' },
-  { value: 'h1', label: 'Heading 1' },
-  { value: 'h2', label: 'Heading 2' },
-  { value: 'h3', label: 'Heading 3' },
-  { value: 'h4', label: 'Heading 4' },
-  { value: 'quote', label: 'Quote' },
-  { value: 'code', label: 'Code block' },
-  { value: 'bullet', label: 'Bulleted list' },
-  { value: 'number', label: 'Numbered list' },
-  { value: 'check', label: 'Check list' },
+interface BlockOption {
+  value: string;
+  label: string;
+  marker?: React.ReactNode;
+}
+
+interface BlockOptionGroup {
+  label: string;
+  options: BlockOption[];
+}
+
+const BLOCK_GROUPS: BlockOptionGroup[] = [
+  {
+    label: '文本',
+    options: [
+      { value: 'paragraph', label: '正文' },
+      { value: 'h1', label: '标题 1' },
+      { value: 'h2', label: '标题 2' },
+      { value: 'h3', label: '标题 3' },
+      { value: 'h4', label: '标题 4' },
+    ],
+  },
+  {
+    label: '列表',
+    options: [
+      { value: 'bullet', label: '无序列表' },
+      { value: 'number', label: '有序列表' },
+      { value: 'check', label: '待办列表' },
+    ],
+  },
+  {
+    label: '无序列表样式',
+    options: [
+      {
+        value: 'bullet-disc',
+        label: '默认',
+        marker: (
+          <span className="inline-block h-2 w-2 rounded-full bg-gray-700" />
+        ),
+      },
+      {
+        value: 'bullet-circle',
+        label: '圆形',
+        marker: (
+          <span className="inline-block h-2 w-2 rounded-full border border-gray-700 bg-transparent" />
+        ),
+      },
+      {
+        value: 'bullet-square',
+        label: '方形',
+        marker: <span className="inline-block h-2 w-2 bg-gray-700" />,
+      },
+    ],
+  },
+  {
+    label: '有序列表样式',
+    options: [
+      {
+        value: 'number-decimal',
+        label: '数字 (1.)',
+        marker: (
+          <span className="w-4 text-center text-xs text-gray-500">1.</span>
+        ),
+      },
+      {
+        value: 'lower-alpha',
+        label: '小写字母 (a.)',
+        marker: (
+          <span className="w-4 text-center text-xs text-gray-500">a.</span>
+        ),
+      },
+      {
+        value: 'upper-alpha',
+        label: '大写字母 (A.)',
+        marker: (
+          <span className="w-4 text-center text-xs text-gray-500">A.</span>
+        ),
+      },
+      {
+        value: 'lower-roman',
+        label: '小写罗马 (i.)',
+        marker: (
+          <span className="w-4 text-center text-xs text-gray-500">i.</span>
+        ),
+      },
+      {
+        value: 'upper-roman',
+        label: '大写罗马 (I.)',
+        marker: (
+          <span className="w-4 text-center text-xs text-gray-500">I.</span>
+        ),
+      },
+    ],
+  },
+  {
+    label: '区块',
+    options: [
+      { value: 'quote', label: '引用' },
+      { value: 'code', label: '代码块' },
+    ],
+  },
 ];
+
+const ALL_OPTIONS = BLOCK_GROUPS.flatMap((g) => g.options);
 
 interface BlockGroupProps {
   blockType: BlockType;
   onBlockTypeChange: (value: BlockType) => void;
   codeLanguage: string;
   onCodeLanguageChange: (language: string) => void;
+  onBulletStyleChange?: (style: 'disc' | 'circle' | 'square') => void;
 }
 
 export function BlockGroup({
@@ -27,25 +121,190 @@ export function BlockGroup({
   onBlockTypeChange,
   codeLanguage,
   onCodeLanguageChange,
+  onBulletStyleChange,
 }: BlockGroupProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = ALL_OPTIONS.find((o) => o.value === blockType);
+  const display = selected ? selected.label : '正文';
+
   return (
     <>
-      <ToolbarDropdown
-        label="Paragraph style"
-        value={blockType}
-        options={BLOCK_OPTIONS}
-        onChange={(v) => onBlockTypeChange(v as BlockType)}
-        className="min-w-30"
-      />
+      <div ref={ref} className="relative min-w-30">
+        <button
+          type="button"
+          title="段落样式"
+          aria-label="段落样式"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-8 w-full cursor-pointer items-center justify-between gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300"
+        >
+          <span className="truncate">{display}</span>
+          <ChevronDown
+            size={14}
+            className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {open && (
+          <ToolbarPopup
+            anchorRef={ref}
+            open={open}
+            onClose={() => setOpen(false)}
+            className="w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          >
+            <div className="max-h-80 overflow-y-auto">
+              {BLOCK_GROUPS.map((group, gi) => (
+                <div key={group.label}>
+                  {gi > 0 && <div className="my-1 border-t border-gray-100" />}
+                  <div className="px-3 py-1 text-xs font-medium text-gray-400">
+                    {group.label}
+                  </div>
+                  {group.options.map((o) => {
+                    const isBulletStyle = o.value.startsWith('bullet-');
+                    const isOrderedStyle =
+                      o.value === 'number-decimal' ||
+                      o.value === 'lower-alpha' ||
+                      o.value === 'upper-alpha' ||
+                      o.value === 'lower-roman' ||
+                      o.value === 'upper-roman';
+                    const isActive =
+                      isBulletStyle || isOrderedStyle
+                        ? false
+                        : o.value === blockType;
+                    return (
+                      <button
+                        key={o.value}
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        onClick={() => {
+                          if (isBulletStyle) {
+                            const style = o.value.replace('bullet-', '') as
+                              | 'disc'
+                              | 'circle'
+                              | 'square';
+                            onBlockTypeChange('bullet');
+                            onBulletStyleChange?.(style);
+                          } else if (isOrderedStyle) {
+                            if (o.value === 'number-decimal') {
+                              onBlockTypeChange('number');
+                            } else {
+                              onBlockTypeChange(o.value as BlockType);
+                            }
+                          } else {
+                            onBlockTypeChange(o.value as BlockType);
+                          }
+                          setOpen(false);
+                        }}
+                        className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-gray-100 ${
+                          isActive
+                            ? 'font-medium text-blue-600'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        {o.marker && (
+                          <span className="flex w-4 shrink-0 items-center justify-center">
+                            {o.marker}
+                          </span>
+                        )}
+                        <span className="truncate">{o.label}</span>
+                        {isActive && (
+                          <Check size={14} className="ml-auto shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </ToolbarPopup>
+        )}
+      </div>
+
       {blockType === 'code' && (
-        <ToolbarDropdown
-          label="Code language"
+        <CodeLanguageDropdown
           value={codeLanguage}
-          options={CODE_LANGUAGES.map((l) => ({ value: l, label: l }))}
           onChange={onCodeLanguageChange}
-          className="w-32"
         />
       )}
     </>
+  );
+}
+
+function CodeLanguageDropdown({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  return (
+    <div ref={ref} className="relative w-32">
+      <button
+        type="button"
+        title="代码语言"
+        aria-label="代码语言"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-8 w-full cursor-pointer items-center justify-between gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300"
+      >
+        <span className="truncate">{value}</span>
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {open && (
+        <ToolbarPopup
+          anchorRef={ref}
+          open={open}
+          onClose={() => setOpen(false)}
+          className="w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+        >
+          <div className="max-h-60 overflow-y-auto">
+            {[
+              'javascript',
+              'typescript',
+              'python',
+              'java',
+              'c',
+              'cpp',
+              'go',
+              'rust',
+              'html',
+              'css',
+              'json',
+              'sql',
+              'bash',
+              'markdown',
+            ].map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                role="option"
+                aria-selected={lang === value}
+                onClick={() => {
+                  onChange(lang);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm transition-colors hover:bg-gray-100 ${
+                  lang === value ? 'font-medium text-blue-600' : 'text-gray-700'
+                }`}
+              >
+                <span className="truncate">{lang}</span>
+                {lang === value && <Check size={14} className="shrink-0" />}
+              </button>
+            ))}
+          </div>
+        </ToolbarPopup>
+      )}
+    </div>
   );
 }
