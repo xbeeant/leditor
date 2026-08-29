@@ -14,27 +14,66 @@ import {
   type TextNode,
 } from 'lexical';
 import Prism from 'prismjs';
+// Level 0: 无依赖的基础语言
 import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-tsx';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-css';
 import 'prismjs/components/prism-markup';
+// 无依赖的独立语言
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-rust';
+import 'prismjs/components/prism-swift';
+import 'prismjs/components/prism-perl';
+import 'prismjs/components/prism-r';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-powershell';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-yaml';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-graphql';
+import 'prismjs/components/prism-docker';
+import 'prismjs/components/prism-git';
+import 'prismjs/components/prism-makefile';
+import 'prismjs/components/prism-toml';
+import 'prismjs/components/prism-ini';
+// Level 1: 依赖 clike 或 markup 的语言
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-go';
+import 'prismjs/components/prism-ruby';
+import 'prismjs/components/prism-kotlin';
+import 'prismjs/components/prism-markup-templating';
+import 'prismjs/components/prism-markdown';
+// Level 2: 依赖 Level 1 的语言
+import 'prismjs/components/prism-scss';
+import 'prismjs/components/prism-less';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-scala';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-php';
+// Level 3: 依赖 Level 2 的语言
+import 'prismjs/components/prism-tsx';
 
 const ALIASES: Record<string, string> = {
   js: 'javascript',
   ts: 'typescript',
   py: 'python',
+  cs: 'csharp',
+  dotnet: 'csharp',
+  kt: 'kotlin',
+  kts: 'kotlin',
+  rb: 'ruby',
   sh: 'bash',
   shell: 'bash',
+  zsh: 'bash',
   html: 'markup',
   xml: 'markup',
+  svg: 'markup',
   yml: 'yaml',
-  zsh: 'bash',
+  md: 'markdown',
+  dockerfile: 'docker',
 };
 
 function getGrammar(language: string | null | undefined) {

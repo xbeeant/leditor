@@ -7,20 +7,45 @@ import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const CODE_LANGUAGES = [
+  // Web
   'javascript',
   'typescript',
+  'jsx',
+  'tsx',
+  'html',
+  'css',
+  'scss',
+  'less',
+  // 后端
   'python',
   'java',
   'c',
   'cpp',
+  'csharp',
   'go',
   'rust',
-  'html',
-  'css',
-  'json',
-  'sql',
+  'php',
+  'ruby',
+  'swift',
+  'kotlin',
+  'perl',
+  'scala',
+  'r',
+  // 脚本
   'bash',
+  'powershell',
+  // 数据格式
+  'json',
+  'yaml',
+  'sql',
+  'graphql',
   'markdown',
+  // 配置
+  'docker',
+  'git',
+  'makefile',
+  'toml',
+  'ini',
 ];
 
 interface CodeBlockToolbarProps {
