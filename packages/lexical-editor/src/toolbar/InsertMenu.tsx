@@ -16,7 +16,7 @@ import {
   Table as TableIcon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { t } from '../i18n';
+import { t, type Locale } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { TableSizePicker } from './TableSizePicker';
 import { ToolbarPopup } from './ToolbarPopup';
@@ -33,36 +33,43 @@ interface InsertItem {
   icon: typeof Pilcrow;
 }
 
-const SECTIONS: { title: string; items: InsertItem[] }[] = [
-  {
-    title: 'Blocks',
-    items: [
-      { type: 'paragraph', label: 'Paragraph', icon: Pilcrow },
-      { type: 'h1', label: 'Heading 1', icon: Heading1 },
-      { type: 'h2', label: 'Heading 2', icon: Heading2 },
-      { type: 'h3', label: 'Heading 3', icon: Heading3 },
-      { type: 'h4', label: 'Heading 4', icon: Heading4 },
-      { type: 'quote', label: 'Quote', icon: Quote },
-      { type: 'code', label: 'Code block', icon: Code },
-    ],
-  },
-  {
-    title: 'Lists',
-    items: [
-      { type: 'bullet', label: 'Bulleted list', icon: List },
-      { type: 'number', label: 'Numbered list', icon: ListOrdered },
-      { type: 'check', label: 'Check list', icon: ListChecks },
-    ],
-  },
-  {
-    title: 'Objects',
-    items: [
-      { type: 'table', label: 'Table', icon: TableIcon },
-      { type: 'divider', label: 'Divider', icon: Minus },
-      { type: 'image', label: 'Image', icon: ImageIcon },
-    ],
-  },
-];
+interface InsertSection {
+  title: string;
+  items: InsertItem[];
+}
+
+function getSections(locale: Locale): InsertSection[] {
+  return [
+    {
+      title: t(locale, 'insertBlocks'),
+      items: [
+        { type: 'paragraph', label: t(locale, 'insertParagraph'), icon: Pilcrow },
+        { type: 'h1', label: t(locale, 'insertH1'), icon: Heading1 },
+        { type: 'h2', label: t(locale, 'insertH2'), icon: Heading2 },
+        { type: 'h3', label: t(locale, 'insertH3'), icon: Heading3 },
+        { type: 'h4', label: t(locale, 'insertH4'), icon: Heading4 },
+        { type: 'quote', label: t(locale, 'insertQuote'), icon: Quote },
+        { type: 'code', label: t(locale, 'insertCodeBlock'), icon: Code },
+      ],
+    },
+    {
+      title: t(locale, 'insertLists'),
+      items: [
+        { type: 'bullet', label: t(locale, 'insertBulletList'), icon: List },
+        { type: 'number', label: t(locale, 'insertNumberedList'), icon: ListOrdered },
+        { type: 'check', label: t(locale, 'insertCheckList'), icon: ListChecks },
+      ],
+    },
+    {
+      title: t(locale, 'insertObjects'),
+      items: [
+        { type: 'table', label: t(locale, 'insertTable'), icon: TableIcon },
+        { type: 'divider', label: t(locale, 'insertDivider'), icon: Minus },
+        { type: 'image', label: t(locale, 'insertImage'), icon: ImageIcon },
+      ],
+    },
+  ];
+}
 
 export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
   const [open, setOpen] = useState(false);
@@ -109,7 +116,7 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
               onCancel={() => setTablePickerOpen(false)}
             />
           ) : (
-            SECTIONS.map((section) => (
+            getSections(locale).map((section) => (
               <div key={section.title}>
                 <div className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
                   {section.title}
