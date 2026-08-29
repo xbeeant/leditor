@@ -38,7 +38,7 @@ export const editorTheme = {
   },
   mark: 'bg-yellow-200/70 border-b-2 border-yellow-400 cursor-pointer',
   markOverlap: 'bg-orange-200/70 border-b-2 border-orange-400 cursor-pointer',
-  code: 'block bg-gray-900 text-gray-100 p-3 rounded font-mono text-sm overflow-auto my-2',
+  code: 'relative block bg-gray-900 text-gray-100 p-3 rounded font-mono text-sm overflow-auto my-2 group',
   codeHighlight: {
     atrule: 'text-purple-300',
     attr: 'text-orange-300',
@@ -63,6 +63,7 @@ export const editorTheme = {
   image: 'max-w-full h-auto my-2 rounded',
   link: 'text-blue-600 underline cursor-pointer',
   table: 'border-collapse w-full my-2 table-fixed',
+  tableScrollableWrapper: 'overflow-auto',
   tableRow: 'border border-gray-300',
   tableCell: 'border border-gray-300 p-1 align-top',
   tableCellHeader: 'border border-gray-300 p-1 bg-gray-100 font-semibold',

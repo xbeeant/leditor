@@ -199,8 +199,26 @@ function $getCodeNodeToHighlight(): CodeNode | null {
 export const CodeHighlightExtension = defineExtension({
   name: '@leditor/code-highlight',
   register(editor) {
+    // Clear highlight cache when IME composition ends to trigger re-highlight
+    const rootElement = editor.getRootElement();
+    if (rootElement) {
+      const handleCompositionEnd = () => {
+        editor.getEditorState().read(() => {
+          const codeNode = $getCodeNodeToHighlight();
+          if (codeNode) {
+            lastHighlighted.delete(codeNode.getKey());
+          }
+        });
+      };
+      rootElement.addEventListener('compositionend', handleCompositionEnd);
+    }
+
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
+        // Skip highlighting during IME composition to avoid interfering
+        // with Chinese/Japanese/Korean input
+        if (editor.isComposing()) return;
+
         const codeNode = $getCodeNodeToHighlight();
         if (!codeNode) return;
         const text = codeNode.getTextContent();

@@ -1,5 +1,5 @@
-import { FONT_FAMILIES, FONT_SIZES, MIXED_FONT_SIZE } from './constants';
 import { ToolbarDropdown } from './ToolbarDropdown';
+import { FONT_FAMILIES, FONT_SIZES, MIXED_FONT_SIZE } from './constants';
 
 /**
  * 根据当前字体值匹配字体选项（参考 ca/lexical/packages/lib 实现）。

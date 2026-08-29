@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { colors, type ColorOption } from './colors';
 import { ToolbarPopup } from './ToolbarPopup';
+import { type ColorOption, colors } from './colors';
 
 /** 色块图标（"A" 字显示颜色，参考 ca/lexical/packages/lib 实现） */
 export function ColorIcon({
@@ -14,7 +14,9 @@ export function ColorIcon({
   return (
     <div
       className="flex size-5 shrink-0 items-center justify-center rounded-sm border border-gray-300 text-[11px] font-semibold"
-      style={group === 'background' ? { backgroundColor: value } : { color: value }}
+      style={
+        group === 'background' ? { backgroundColor: value } : { color: value }
+      }
     >
       A
     </div>

@@ -158,17 +158,15 @@ export function TableActionMenuPlugin(): JSX.Element | null {
         ),
       );
       setCellBgColor(
-        editor
-          .getEditorState()
-          .read(
-            () => {
-              const node = $getNodeByKey(cellKey);
-              return node && $isTableCellNode(node)
-                ? (node.getBackgroundColor() ?? '')
-                : '';
-            },
-            { editor },
-          ),
+        editor.getEditorState().read(
+          () => {
+            const node = $getNodeByKey(cellKey);
+            return node && $isTableCellNode(node)
+              ? (node.getBackgroundColor() ?? '')
+              : '';
+          },
+          { editor },
+        ),
       );
       setMenu({ x: event.clientX, y: event.clientY, cellKey });
     };

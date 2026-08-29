@@ -62,13 +62,13 @@ export const CommentExtension = defineExtension({
       (threadID) => {
         const marks: MarkNode[] = [];
         collectMarks($getRoot(), threadID, marks);
-        marks.forEach((mark) => {
+        for (const mark of marks) {
           if (mark.getIDs().length <= 1) {
             $unwrapMarkNode(mark);
           } else {
             mark.deleteID(threadID);
           }
-        });
+        }
         return true;
       },
       COMMAND_PRIORITY_EDITOR,

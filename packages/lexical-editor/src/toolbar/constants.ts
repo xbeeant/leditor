@@ -25,7 +25,8 @@ export const FONT_FAMILIES: { value: string; label: string }[] = [
     label: '宋体',
   },
   {
-    value: 'Microsoft YaHei, 微软雅黑, PingFang SC, SimHei, STHeiti, sans-serif',
+    value:
+      'Microsoft YaHei, 微软雅黑, PingFang SC, SimHei, STHeiti, sans-serif',
     label: '微软雅黑',
   },
   { value: 'KaiTi, 楷体, STKaiti, Kaiti SC, cursive', label: '楷体' },

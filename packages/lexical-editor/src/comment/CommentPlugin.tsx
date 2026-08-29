@@ -388,7 +388,7 @@ export function CommentPlugin() {
               placeholder="Write a comment…"
               rows={3}
               autoFocus
-              className="w-full resize-none rounded-lg border border-gray-200 p-2 text-sm outline-none focus:border-blue-400"
+              className="w-full resize-none rounded-lg border border-gray-200 p-2 text-sm outline-none"
             />
             <div className="mt-2 flex justify-end gap-2">
               <button

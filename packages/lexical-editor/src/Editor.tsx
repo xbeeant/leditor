@@ -19,12 +19,13 @@ import {
   defineExtension,
 } from 'lexical';
 import { useMemo, useRef, useState } from 'react';
+import { CodeBlockPlugin } from './CodeBlockPlugin';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
 import { FloatingTableActionsPlugin } from './FloatingTableActions';
 import { ImageNode } from './ImageNode';
 import { ListStyleNode } from './ListStyleNode';
-import { RubyNode } from './RubyNode';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
+import { RubyNode } from './RubyNode';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
 import { TableOfContents } from './TableOfContents';
@@ -130,6 +131,7 @@ export function Editor({
         <FloatingTableActionsPlugin />
         <TableDragSelectFix />
         <CommentPlugin />
+        <CodeBlockPlugin />
       </LexicalExtensionComposer>
     </div>
   );
