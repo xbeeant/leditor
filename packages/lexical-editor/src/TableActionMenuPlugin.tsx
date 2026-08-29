@@ -35,6 +35,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { type JSX, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { t } from './i18n';
+import { useLocale } from './LocaleContext';
 import { ColorList } from './toolbar/ColorGroup';
 
 interface MenuState {
@@ -100,6 +102,7 @@ const MENU_GAP = 8;
 
 export function TableActionMenuPlugin(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [isTableSelection, setIsTableSelection] = useState(false);
   const [isMergedCell, setIsMergedCell] = useState(false);
@@ -246,38 +249,38 @@ export function TableActionMenuPlugin(): JSX.Element | null {
       onMouseDown={(e) => e.stopPropagation()}
     >
       <MenuItem
-        label="Insert row above"
+        label={t(locale, 'insertRowAbove')}
         icon={ArrowUp}
         onClick={() => run(() => $insertTableRowAtSelection(false))}
       />
       <MenuItem
-        label="Insert row below"
+        label={t(locale, 'insertRowBelow')}
         icon={ArrowDown}
         onClick={() => run(() => $insertTableRowAtSelection(true))}
       />
       <MenuItem
-        label="Insert column before"
+        label={t(locale, 'insertColBefore')}
         icon={Columns2}
         onClick={() => run(() => $insertTableColumnAtSelection(false))}
       />
       <MenuItem
-        label="Insert column after"
+        label={t(locale, 'insertColAfter')}
         icon={Plus}
         onClick={() => run(() => $insertTableColumnAtSelection(true))}
       />
       <div className="my-1 border-t border-gray-100" />
       <MenuItem
-        label="Delete row"
+        label={t(locale, 'deleteRow')}
         icon={Rows2}
         onClick={() => run(() => $deleteTableRowAtSelection())}
       />
       <MenuItem
-        label="Delete column"
+        label={t(locale, 'deleteCol')}
         icon={Columns2}
         onClick={() => run(() => $deleteTableColumnAtSelection())}
       />
       <MenuItem
-        label="Delete table"
+        label={t(locale, 'deleteTable')}
         icon={Trash2}
         danger
         onClick={() =>
@@ -294,17 +297,17 @@ export function TableActionMenuPlugin(): JSX.Element | null {
         <>
           <div className="my-1 border-t border-gray-100" />
           {isTableSelection && (
-            <MenuItem label="Merge cells" icon={Combine} onClick={mergeCells} />
+            <MenuItem label={t(locale, 'mergeCells')} icon={Combine} onClick={mergeCells} />
           )}
           {isMergedCell && (
-            <MenuItem label="Split cell" icon={Scissors} onClick={splitCell} />
+            <MenuItem label={t(locale, 'splitCell')} icon={Scissors} onClick={splitCell} />
           )}
         </>
       )}
       <div className="my-1 border-t border-gray-100" />
       <ColorList
         group="background"
-        title="Cell background"
+        title={t(locale, 'cellBgColor')}
         value={cellBgColor}
         onSelect={(value) =>
           applyToCells((c) => c.setBackgroundColor(value || null))
@@ -312,13 +315,13 @@ export function TableActionMenuPlugin(): JSX.Element | null {
         onClose={() => setMenu(null)}
       />
       <div className="my-1 border-t border-gray-100" />
-      <MenuLabel>Horizontal align</MenuLabel>
+      <MenuLabel>{t(locale, 'horizontalAlign')}</MenuLabel>
       <div className="flex gap-1 px-3 pb-2">
         {H_ALIGNS.map(([align, Icon]) => (
           <button
             key={align}
             type="button"
-            title={`Align ${align}`}
+            title={`${align}`}
             className="flex h-6 w-6 items-center justify-center rounded border border-gray-300 text-gray-600 transition-colors hover:bg-gray-100"
             onClick={() => applyToCells((c) => $setCellAlign(c, align))}
           >
@@ -327,7 +330,7 @@ export function TableActionMenuPlugin(): JSX.Element | null {
         ))}
       </div>
       <div className="my-1 border-t border-gray-100" />
-      <MenuLabel>Vertical align</MenuLabel>
+      <MenuLabel>{t(locale, 'verticalAlign')}</MenuLabel>
       <div className="flex gap-1 px-3 pb-2">
         {V_ALIGNS.map((align) => (
           <button

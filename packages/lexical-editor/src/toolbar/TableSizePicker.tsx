@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 
 export const MAX_TABLE_COLS = 10;
 export const MAX_TABLE_ROWS = 8;
@@ -15,19 +17,20 @@ interface TableSizePickerProps {
  */
 export function TableSizePicker({ onSelect, onCancel }: TableSizePickerProps) {
   const [size, setSize] = useState({ rows: 0, cols: 0 });
+  const locale = useLocale();
 
   return (
     <div className="p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-700">
           {size.rows > 0
-            ? `${size.rows} × ${size.cols} table`
+            ? `${size.rows} × ${size.cols}`
             : 'Select table size'}
         </span>
         <button
           type="button"
-          aria-label="Cancel"
-          title="Cancel"
+          aria-label={t(locale, 'cancel')}
+          title={t(locale, 'cancel')}
           onClick={onCancel}
           className="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
         >

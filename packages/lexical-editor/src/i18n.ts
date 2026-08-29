@@ -1,0 +1,217 @@
+export type Locale = 'zh-CN' | 'en';
+
+interface Messages {
+  [key: string]: string;
+}
+
+const zhCN: Messages = {
+  // 工具栏
+  undo: '撤销',
+  redo: '重做',
+  insert: '插入',
+  paragraph: '正文',
+  heading1: '标题 1',
+  heading2: '标题 2',
+  heading3: '标题 3',
+  heading4: '标题 4',
+  bulletList: '无序列表',
+  numberedList: '有序列表',
+  checklist: '待办列表',
+  quote: '引用',
+  codeBlock: '代码块',
+  bold: '粗体',
+  italic: '斜体',
+  underline: '下划线',
+  strikethrough: '删除线',
+  subscript: '下标',
+  superscript: '上标',
+  inlineCode: '行内代码',
+  link: '链接',
+  alignLeft: '左对齐',
+  alignCenter: '居中',
+  alignRight: '右对齐',
+  alignJustify: '两端对齐',
+  indent: '增加缩进',
+  outdent: '减少缩进',
+  clearFormat: '清除格式',
+  addComment: '添加评论',
+  toggleComments: '显示/隐藏评论',
+  toggleToc: '显示/隐藏目录',
+  readOnly: '只读模式',
+  editable: '编辑模式',
+  language: '语言',
+  // 代码块
+  copyCode: '复制代码',
+  copied: '已复制',
+  // BlockGroup
+  text: '文本',
+  list: '列表',
+  bulletStyle: '无序列表样式',
+  numberStyle: '有序列表样式',
+  block: '区块',
+  default: '默认',
+  circle: '圆形',
+  square: '方形',
+  numberDecimal: '数字 (1.)',
+  lowerAlpha: '小写字母 (a.)',
+  upperAlpha: '大写字母 (A.)',
+  lowerRoman: '小写罗马 (i.)',
+  upperRoman: '大写罗马 (I.)',
+  // TableGroup
+  mergeCells: '合并单元格',
+  splitCell: '拆分单元格',
+  cellBgColor: '单元格背景色',
+  cellAlign: '单元格垂直对齐',
+  topAlign: '顶部对齐',
+  middleAlign: '垂直居中',
+  bottomAlign: '底部对齐',
+  deleteTable: '删除表格',
+  // ColorGroup
+  textColor: '文字颜色',
+  bgColor: '背景色',
+  textColorAndBg: '文字颜色 / 背景色',
+  // FontGroup
+  searchFont: '搜索字体...',
+  // RubyGroup
+  rubyPlaceholder: '注音/拼音',
+  rubyTip: '选中文本后输入注音',
+  // FloatingTableActions
+  insertColBefore: '在此列前插入列',
+  insertRowBefore: '在此行前插入行',
+  insertRowAbove: '在上方插入行',
+  insertRowBelow: '在下方插入行',
+  insertColAfter: '在后方插入列',
+  deleteRow: '删除行',
+  deleteCol: '删除列',
+  dragColumn: '拖拽移动列',
+  cannotDragColumn: '存在合并单元格，无法移动列',
+  horizontalAlign: '水平对齐',
+  verticalAlign: '垂直对齐',
+  // LinkGroup
+  invalidUrl: '请输入有效的 URL',
+  insertLink: '插入链接',
+  // BlockGroup titles
+  paragraphStyle: '段落样式',
+  codeLang: '代码语言',
+  // 其他
+  placeholder: '开始输入...',
+  cancel: '取消',
+  close: '关闭',
+  noHeadings: '暂无标题',
+  rubyAnnotation: '注音',
+  deleteComment: '删除评论',
+  sendReply: '发送回复',
+};
+
+const en: Messages = {
+  // Toolbar
+  undo: 'Undo',
+  redo: 'Redo',
+  insert: 'Insert',
+  paragraph: 'Paragraph',
+  heading1: 'Heading 1',
+  heading2: 'Heading 2',
+  heading3: 'Heading 3',
+  heading4: 'Heading 4',
+  bulletList: 'Bullet List',
+  numberedList: 'Numbered List',
+  checklist: 'Checklist',
+  quote: 'Quote',
+  codeBlock: 'Code Block',
+  bold: 'Bold',
+  italic: 'Italic',
+  underline: 'Underline',
+  strikethrough: 'Strikethrough',
+  subscript: 'Subscript',
+  superscript: 'Superscript',
+  inlineCode: 'Inline Code',
+  link: 'Link',
+  alignLeft: 'Align Left',
+  alignCenter: 'Align Center',
+  alignRight: 'Align Right',
+  alignJustify: 'Justify',
+  indent: 'Indent',
+  outdent: 'Outdent',
+  clearFormat: 'Clear Format',
+  addComment: 'Add Comment',
+  toggleComments: 'Toggle Comments',
+  toggleToc: 'Toggle Table of Contents',
+  readOnly: 'Read Only',
+  editable: 'Editable',
+  language: 'Language',
+  // Code block
+  copyCode: 'Copy Code',
+  copied: 'Copied',
+  // BlockGroup
+  text: 'Text',
+  list: 'List',
+  bulletStyle: 'Bullet Style',
+  numberStyle: 'Number Style',
+  block: 'Block',
+  default: 'Default',
+  circle: 'Circle',
+  square: 'Square',
+  numberDecimal: 'Number (1.)',
+  lowerAlpha: 'Lower Alpha (a.)',
+  upperAlpha: 'Upper Alpha (A.)',
+  lowerRoman: 'Lower Roman (i.)',
+  upperRoman: 'Upper Roman (I.)',
+  // TableGroup
+  mergeCells: 'Merge Cells',
+  splitCell: 'Split Cell',
+  cellBgColor: 'Cell Background',
+  cellAlign: 'Vertical Align',
+  topAlign: 'Align Top',
+  middleAlign: 'Align Middle',
+  bottomAlign: 'Align Bottom',
+  deleteTable: 'Delete Table',
+  // ColorGroup
+  textColor: 'Text Color',
+  bgColor: 'Background',
+  textColorAndBg: 'Text Color / Background',
+  // FontGroup
+  searchFont: 'Search font...',
+  // RubyGroup
+  rubyPlaceholder: 'Ruby/Pinyin',
+  rubyTip: 'Select text and enter pronunciation',
+  // FloatingTableActions
+  insertColBefore: 'Insert column before',
+  insertRowBefore: 'Insert row before',
+  insertRowAbove: 'Insert row above',
+  insertRowBelow: 'Insert row below',
+  insertColAfter: 'Insert column after',
+  deleteRow: 'Delete row',
+  deleteCol: 'Delete column',
+  dragColumn: 'Drag to move column',
+  cannotDragColumn: 'Cannot move column with merged cells',
+  horizontalAlign: 'Horizontal align',
+  verticalAlign: 'Vertical align',
+  // LinkGroup
+  invalidUrl: 'Please enter a valid URL',
+  insertLink: 'Insert link',
+  // BlockGroup titles
+  paragraphStyle: 'Paragraph Style',
+  codeLang: 'Code Language',
+  // Other
+  placeholder: 'Start typing...',
+  cancel: 'Cancel',
+  close: 'Close',
+  noHeadings: 'No headings yet',
+  rubyAnnotation: 'Ruby annotation',
+  deleteComment: 'Delete comment',
+  sendReply: 'Send reply',
+};
+
+const messages: Record<Locale, Messages> = {
+  'zh-CN': zhCN,
+  en,
+};
+
+export function t(locale: Locale, key: string): string {
+  return messages[locale]?.[key] ?? messages.en[key] ?? key;
+}
+
+export const localeNames: Record<Locale, string> = {
+  'zh-CN': '中文',
+  en: 'English',
+};

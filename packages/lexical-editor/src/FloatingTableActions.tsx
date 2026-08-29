@@ -18,6 +18,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { t } from './i18n';
+import { useLocale } from './LocaleContext';
 
 const BUTTON_OVERHANG = 9;
 const INDICATOR_WIDTH = 2;
@@ -80,6 +82,7 @@ function getTableCellFromTarget(
 function FloatingTableActions(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const isEditable = useLexicalEditable();
+  const locale = useLocale();
 
   const hoveredTopCellRef = useRef<HTMLTableCellElement | null>(null);
   const hoveredLeftCellRef = useRef<HTMLTableCellElement | null>(null);
@@ -404,7 +407,7 @@ function FloatingTableActions(): JSX.Element | null {
         >
           <button
             type="button"
-            title="在此列前插入列"
+            title={t(locale, 'insertColBefore')}
             className={actionButtonClass}
             onClick={handleAddColumn}
           >
@@ -412,7 +415,7 @@ function FloatingTableActions(): JSX.Element | null {
           </button>
           <button
             type="button"
-            title={canReorder ? '拖拽移动列' : '存在合并单元格，无法移动列'}
+            title={canReorder ? t(locale, 'dragColumn') : t(locale, 'cannotDragColumn')}
             disabled={!canReorder}
             className={`${actionButtonClass} cursor-grab active:cursor-grabbing`}
             onPointerDown={handleDragStart}
@@ -430,7 +433,7 @@ function FloatingTableActions(): JSX.Element | null {
         >
           <button
             type="button"
-            title="在此行前插入行"
+            title={t(locale, 'insertRowBefore')}
             className={actionButtonClass}
             onClick={handleAddRow}
           >

@@ -1,5 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarPopup } from './ToolbarPopup';
 import { type ColorOption, colors } from './colors';
 
@@ -95,13 +97,14 @@ export function ColorGroup({
 }: ColorGroupProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        title="文字颜色 / 背景色"
-        aria-label="文字颜色 / 背景色"
+        title={t(locale, 'textColorAndBg')}
+        aria-label={t(locale, 'textColorAndBg')}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -132,7 +135,7 @@ export function ColorGroup({
             <div className="min-w-0 flex-1">
               <ColorList
                 group="color"
-                title="文字颜色"
+                title={t(locale, 'textColor')}
                 value={fontColor}
                 layout="column"
                 onSelect={onFontColorChange}
@@ -143,7 +146,7 @@ export function ColorGroup({
             <div className="min-w-0 flex-1">
               <ColorList
                 group="background"
-                title="背景色"
+                title={t(locale, 'bgColor')}
                 value={bgColor}
                 layout="column"
                 onSelect={onBgColorChange}

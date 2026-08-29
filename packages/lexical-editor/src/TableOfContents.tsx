@@ -8,6 +8,8 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import { useEffect, useState } from 'react';
+import { t } from './i18n';
+import { useLocale } from './LocaleContext';
 
 interface TocItem {
   key: string;
@@ -60,6 +62,7 @@ interface TableOfContentsProps {
 
 export function TableOfContents({ pinned }: TableOfContentsProps) {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const [items, setItems] = useState<TocItem[]>([]);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [hovered, setHovered] = useState(false);
@@ -156,7 +159,7 @@ export function TableOfContents({ pinned }: TableOfContentsProps) {
         {items.length === 0 ? (
           <span
             className="h-[2px] w-4 rounded-full bg-gray-200"
-            title="No headings yet"
+            title={t(locale, 'noHeadings')}
           />
         ) : (
           items.map((item) => {

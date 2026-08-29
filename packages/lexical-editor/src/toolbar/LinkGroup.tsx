@@ -1,5 +1,7 @@
 import { Link as LinkIcon, X } from 'lucide-react';
 import { useMemo, useRef } from 'react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
 
@@ -40,9 +42,10 @@ export function LinkGroup({
 }: LinkGroupProps) {
   const ref = useRef<HTMLDivElement>(null);
   const valid = useMemo(() => isValidUrl(url), [url]);
+  const locale = useLocale();
   return (
     <div ref={ref} className="relative">
-      <ToolbarButton title="Insert link" active={active} onClick={onToggle}>
+      <ToolbarButton title={t(locale, 'insertLink')} active={active} onClick={onToggle}>
         <LinkIcon size={18} />
       </ToolbarButton>
 
@@ -77,12 +80,12 @@ export function LinkGroup({
             >
               Apply
             </button>
-            <ToolbarButton title="Close" onClick={onClose}>
+            <ToolbarButton title={t(locale, 'close')} onClick={onClose}>
               <X size={18} />
             </ToolbarButton>
           </div>
           {url.trim() !== '' && !valid && (
-            <p className="mt-1 text-xs text-red-500">请输入有效的 URL</p>
+            <p className="mt-1 text-xs text-red-500">{t(locale, 'invalidUrl')}</p>
           )}
         </ToolbarPopup>
       )}

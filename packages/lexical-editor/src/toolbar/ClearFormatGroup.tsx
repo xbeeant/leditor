@@ -1,4 +1,6 @@
 import { Eraser } from 'lucide-react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
 
 interface ClearFormatGroupProps {
@@ -6,8 +8,9 @@ interface ClearFormatGroupProps {
 }
 
 export function ClearFormatGroup({ onClear }: ClearFormatGroupProps) {
+  const locale = useLocale();
   return (
-    <ToolbarButton title="Clear formatting" onClick={onClear}>
+    <ToolbarButton title={t(locale, 'clearFormat')} onClick={onClear}>
       <Eraser size={18} />
     </ToolbarButton>
   );

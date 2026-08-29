@@ -9,6 +9,8 @@ import {
   Outdent,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { t, type Locale } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
 import type { AlignType } from './types';
@@ -22,16 +24,14 @@ interface AlignGroupProps {
   onToggleRTL?: () => void;
 }
 
-const ALIGN_OPTIONS: {
-  value: AlignType;
-  label: string;
-  Icon: typeof AlignLeft;
-}[] = [
-  { value: 'left', label: 'Align left', Icon: AlignLeft },
-  { value: 'center', label: 'Align center', Icon: AlignCenter },
-  { value: 'right', label: 'Align right', Icon: AlignRight },
-  { value: 'justify', label: 'Justify', Icon: AlignJustify },
-];
+function getAlignOptions(locale: Locale) {
+  return [
+    { value: 'left', label: t(locale, 'alignLeft'), Icon: AlignLeft },
+    { value: 'center', label: t(locale, 'alignCenter'), Icon: AlignCenter },
+    { value: 'right', label: t(locale, 'alignRight'), Icon: AlignRight },
+    { value: 'justify', label: t(locale, 'alignJustify'), Icon: AlignJustify },
+  ] as const;
+}
 
 /**
  * 对齐下拉：将左/右/居中对齐、两端对齐合并为一个下拉选项。
@@ -46,15 +46,17 @@ function AlignDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const active = ALIGN_OPTIONS.find((o) => o.value === activeAlign);
+  const locale = useLocale();
+  const alignOptions = getAlignOptions(locale);
+  const active = alignOptions.find((o) => o.value === activeAlign);
   const ActiveIcon = active?.Icon ?? AlignLeft;
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        title="Text alignment"
-        aria-label="Text alignment"
+        title={t(locale, 'alignLeft')}
+        aria-label={t(locale, 'alignLeft')}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
@@ -80,7 +82,7 @@ function AlignDropdown({
           className="w-44 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
         >
           <ul className="py-1">
-            {ALIGN_OPTIONS.map(({ value, label, Icon }) => (
+            {alignOptions.map(({ value, label, Icon }) => (
               <li key={value}>
                 <button
                   type="button"
@@ -120,13 +122,14 @@ export function AlignGroup({
   onOutdent,
   onIndent,
 }: AlignGroupProps) {
+  const locale = useLocale();
   return (
     <>
       <AlignDropdown activeAlign={activeAlign} onAlign={onAlign} />
-      <ToolbarButton title="Outdent" onClick={onOutdent}>
+      <ToolbarButton title={t(locale, 'outdent')} onClick={onOutdent}>
         <Outdent size={18} />
       </ToolbarButton>
-      <ToolbarButton title="Indent" onClick={onIndent}>
+      <ToolbarButton title={t(locale, 'indent')} onClick={onIndent}>
         <Indent size={18} />
       </ToolbarButton>
     </>

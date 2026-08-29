@@ -42,9 +42,10 @@ import {
   REDO_COMMAND,
   UNDO_COMMAND,
 } from 'lexical';
-import { List, MessageSquare, MessageSquarePlus } from 'lucide-react';
+import { List, Globe, Eye, EyeOff, MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { $createImageNode } from '../ImageNode';
+import { type Locale, t, localeNames } from '../i18n';
 import {
   $createListStyleNode,
   $insertListStyle,
@@ -84,12 +85,20 @@ export function Toolbar({
   pinned,
   showComments,
   onToggleComments,
+  locale,
+  onLocaleChange,
+  readOnly,
+  onReadOnlyChange,
 }: {
   toc?: boolean;
   onTogglePin?: () => void;
   pinned?: boolean;
   showComments?: boolean;
   onToggleComments?: () => void;
+  locale: Locale;
+  onLocaleChange: (locale: Locale) => void;
+  readOnly: boolean;
+  onReadOnlyChange: (readOnly: boolean) => void;
 }) {
   const [editor] = useLexicalComposerContext();
   const [blockType, setBlockType] = useState<BlockType>('paragraph');
@@ -709,7 +718,7 @@ export function Toolbar({
             editor.dispatchCommand(TOGGLE_COMMENT_INPUT_COMMAND, true)
           }
           className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
-          title="Add comment"
+          title={t(locale, 'addComment')}
         >
           <MessageSquarePlus size={14} />
         </button>
@@ -745,6 +754,35 @@ export function Toolbar({
             <List size={14} />
           </button>
         )}
+
+        <ToolbarDivider />
+
+        <button
+          type="button"
+          onClick={() =>
+            onLocaleChange(locale === 'zh-CN' ? 'en' : 'zh-CN')
+          }
+          className="inline-flex h-6 items-center gap-1 rounded-md px-1.5 text-xs text-gray-500 hover:bg-gray-100"
+          title={t(locale, 'language')}
+        >
+          <Globe size={14} />
+          <span>{localeNames[locale]}</span>
+        </button>
+
+        <ToolbarDivider />
+
+        <button
+          type="button"
+          onClick={() => onReadOnlyChange(!readOnly)}
+          className={
+            readOnly
+              ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-blue-600 hover:bg-blue-200'
+              : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
+          }
+          title={readOnly ? t(locale, 'editable') : t(locale, 'readOnly')}
+        >
+          {readOnly ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
       </div>
     </div>
   );

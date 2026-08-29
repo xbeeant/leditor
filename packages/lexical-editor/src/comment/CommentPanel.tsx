@@ -8,6 +8,8 @@ import {
 } from 'lexical';
 import { Loader2, MessageSquare, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { UNWRAP_MARK_COMMAND } from './commentCommands';
 import { timeAgo } from './format';
 import { mockCommentsApi } from './mockApi';
@@ -83,6 +85,7 @@ function readMarkSignature(editor: LexicalEditor): string {
  */
 export function CommentPanel() {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const [threads, setThreads] = useState<PanelThread[]>([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
@@ -226,7 +229,7 @@ export function CommentPanel() {
                           type="button"
                           onClick={() => handleDelete(comment)}
                           className="rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                          title="Delete comment"
+                          title={t(locale, 'deleteComment')}
                         >
                           <Trash2 size={11} />
                         </button>

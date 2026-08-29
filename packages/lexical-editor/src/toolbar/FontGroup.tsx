@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarDropdown } from './ToolbarDropdown';
 import { FONT_FAMILIES, FONT_SIZES, MIXED_FONT_SIZE } from './constants';
 
@@ -36,6 +38,7 @@ export function FontGroup({
 }: FontGroupProps) {
   const familyItem = getFontFamilyItem(fontFamily);
   const isMixed = fontSize === MIXED_FONT_SIZE;
+  const locale = useLocale();
 
   return (
     <>
@@ -46,7 +49,7 @@ export function FontGroup({
         onChange={onFontFamilyChange}
         className="w-32.5"
         searchable
-        searchPlaceholder="搜索字体..."
+        searchPlaceholder={t(locale, 'searchFont')}
       />
       <ToolbarDropdown
         label="Font size"

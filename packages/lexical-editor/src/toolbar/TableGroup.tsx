@@ -18,6 +18,8 @@ import {
   SquareSplitHorizontal,
   Trash2,
 } from 'lucide-react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { useEffect, useRef, useState } from 'react';
 import { ColorList } from './ColorGroup';
 import { ToolbarButton } from './ToolbarButton';
@@ -32,6 +34,7 @@ const initialState = {
 
 export function TableGroup() {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const [state, setState] = useState(initialState);
   const [bgOpen, setBgOpen] = useState(false);
   const [alignOpen, setAlignOpen] = useState(false);
@@ -166,14 +169,14 @@ export function TableGroup() {
   return (
     <>
       <ToolbarButton
-        title="合并单元格"
+        title={t(locale, 'mergeCells')}
         disabled={!state.canMerge}
         onClick={mergeCells}
       >
         <Combine size={18} />
       </ToolbarButton>
       <ToolbarButton
-        title="拆分单元格"
+        title={t(locale, 'splitCell')}
         disabled={!state.canUnmerge}
         onClick={splitCell}
       >
@@ -181,7 +184,7 @@ export function TableGroup() {
       </ToolbarButton>
       <div ref={bgRef} className="relative">
         <ToolbarButton
-          title="单元格背景色"
+          title={t(locale, 'cellBgColor')}
           onClick={() => setBgOpen((v) => !v)}
         >
           <span className="relative inline-flex flex-col items-center">
@@ -201,7 +204,7 @@ export function TableGroup() {
           >
             <ColorList
               group="background"
-              title="单元格背景色"
+              title={t(locale, 'cellBgColor')}
               value={state.backgroundColor}
               onSelect={setCellBackground}
               onClose={() => setBgOpen(false)}
@@ -211,7 +214,7 @@ export function TableGroup() {
       </div>
       <div ref={alignRef} className="relative">
         <ToolbarButton
-          title="单元格垂直对齐"
+          title={t(locale, 'cellAlign')}
           onClick={() => setAlignOpen((v) => !v)}
         >
           <AlignVerticalJustifyCenter size={18} />
@@ -224,7 +227,7 @@ export function TableGroup() {
             className="flex gap-0.5 rounded-lg border border-gray-200 bg-white p-1 shadow-lg"
           >
             <ToolbarButton
-              title="顶部对齐"
+              title={t(locale, 'topAlign')}
               onClick={() => {
                 setCellVerticalAlign('top');
                 setAlignOpen(false);
@@ -233,7 +236,7 @@ export function TableGroup() {
               <AlignVerticalJustifyStart size={16} />
             </ToolbarButton>
             <ToolbarButton
-              title="垂直居中"
+              title={t(locale, 'middleAlign')}
               onClick={() => {
                 setCellVerticalAlign('middle');
                 setAlignOpen(false);
@@ -242,7 +245,7 @@ export function TableGroup() {
               <AlignVerticalJustifyCenter size={16} />
             </ToolbarButton>
             <ToolbarButton
-              title="底部对齐"
+              title={t(locale, 'bottomAlign')}
               onClick={() => {
                 setCellVerticalAlign('bottom');
                 setAlignOpen(false);
@@ -253,7 +256,7 @@ export function TableGroup() {
           </ToolbarPopup>
         )}
       </div>
-      <ToolbarButton title="删除表格" onClick={deleteTable}>
+      <ToolbarButton title={t(locale, 'deleteTable')} onClick={deleteTable}>
         <Trash2 size={18} />
       </ToolbarButton>
     </>

@@ -16,6 +16,8 @@ import {
   Table as TableIcon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { TableSizePicker } from './TableSizePicker';
 import { ToolbarPopup } from './ToolbarPopup';
 import type { InsertBlockType } from './types';
@@ -66,6 +68,7 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
   const [open, setOpen] = useState(false);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
 
   const closeMenu = () => {
     setOpen(false);
@@ -76,15 +79,15 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
     <div ref={ref} className="relative">
       <button
         type="button"
-        title="Insert"
-        aria-label="Insert"
+        title={t(locale, 'insert')}
+        aria-label={t(locale, 'insert')}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className="flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-blue-400"
       >
         <SquarePlus size={18} />
-        <span>Insert</span>
+        <span>{t(locale, 'insert')}</span>
         <ChevronDown
           size={14}
           className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}

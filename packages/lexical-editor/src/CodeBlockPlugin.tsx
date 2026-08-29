@@ -5,6 +5,8 @@ import { $getNearestNodeFromDOMNode, $getNodeByKey } from 'lexical';
 import { Check, ChevronDown, Copy } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { t } from './i18n';
+import { useLocale } from './LocaleContext';
 
 const CODE_LANGUAGES = [
   // Web
@@ -60,6 +62,7 @@ function CodeBlockToolbar({
   onClose,
 }: CodeBlockToolbarProps): JSX.Element {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const [language, setLanguage] = useState('javascript');
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -173,14 +176,14 @@ function CodeBlockToolbar({
         type="button"
         onClick={handleCopy}
         className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-        title={copied ? '已复制' : '复制代码'}
+        title={copied ? t(locale, 'copied') : t(locale, 'copyCode')}
       >
         {copied ? (
           <Check size={12} className="text-green-600" />
         ) : (
           <Copy size={12} />
         )}
-        <span>{copied ? '已复制' : '复制'}</span>
+        <span>{copied ? t(locale, 'copied') : t(locale, 'copyCode')}</span>
       </button>
     </div>
   );

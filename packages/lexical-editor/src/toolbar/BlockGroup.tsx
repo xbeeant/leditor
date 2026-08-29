@@ -1,5 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { t, type Locale } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import { ToolbarPopup } from './ToolbarPopup';
 import type { BlockType } from './types';
 
@@ -14,99 +16,99 @@ interface BlockOptionGroup {
   options: BlockOption[];
 }
 
-const BLOCK_GROUPS: BlockOptionGroup[] = [
-  {
-    label: '文本',
-    options: [
-      { value: 'paragraph', label: '正文' },
-      { value: 'h1', label: '标题 1' },
-      { value: 'h2', label: '标题 2' },
-      { value: 'h3', label: '标题 3' },
-      { value: 'h4', label: '标题 4' },
-    ],
-  },
-  {
-    label: '列表',
-    options: [
-      { value: 'bullet', label: '无序列表' },
-      { value: 'number', label: '有序列表' },
-      { value: 'check', label: '待办列表' },
-    ],
-  },
-  {
-    label: '无序列表样式',
-    options: [
-      {
-        value: 'bullet-disc',
-        label: '默认',
-        marker: (
-          <span className="inline-block h-2 w-2 rounded-full bg-gray-700" />
-        ),
-      },
-      {
-        value: 'bullet-circle',
-        label: '圆形',
-        marker: (
-          <span className="inline-block h-2 w-2 rounded-full border border-gray-700 bg-transparent" />
-        ),
-      },
-      {
-        value: 'bullet-square',
-        label: '方形',
-        marker: <span className="inline-block h-2 w-2 bg-gray-700" />,
-      },
-    ],
-  },
-  {
-    label: '有序列表样式',
-    options: [
-      {
-        value: 'number-decimal',
-        label: '数字 (1.)',
-        marker: (
-          <span className="w-4 text-center text-xs text-gray-500">1.</span>
-        ),
-      },
-      {
-        value: 'lower-alpha',
-        label: '小写字母 (a.)',
-        marker: (
-          <span className="w-4 text-center text-xs text-gray-500">a.</span>
-        ),
-      },
-      {
-        value: 'upper-alpha',
-        label: '大写字母 (A.)',
-        marker: (
-          <span className="w-4 text-center text-xs text-gray-500">A.</span>
-        ),
-      },
-      {
-        value: 'lower-roman',
-        label: '小写罗马 (i.)',
-        marker: (
-          <span className="w-4 text-center text-xs text-gray-500">i.</span>
-        ),
-      },
-      {
-        value: 'upper-roman',
-        label: '大写罗马 (I.)',
-        marker: (
-          <span className="w-4 text-center text-xs text-gray-500">I.</span>
-        ),
-      },
-    ],
-  },
-  {
-    label: '区块',
-    options: [
-      { value: 'quote', label: '引用' },
-      { value: 'code', label: '代码块' },
-    ],
-  },
-];
-
-const ALL_OPTIONS = BLOCK_GROUPS.flatMap((g) => g.options);
+function getBlockGroups(locale: Locale): BlockOptionGroup[] {
+  return [
+    {
+      label: t(locale, 'text'),
+      options: [
+        { value: 'paragraph', label: t(locale, 'paragraph') },
+        { value: 'h1', label: t(locale, 'heading1') },
+        { value: 'h2', label: t(locale, 'heading2') },
+        { value: 'h3', label: t(locale, 'heading3') },
+        { value: 'h4', label: t(locale, 'heading4') },
+      ],
+    },
+    {
+      label: t(locale, 'list'),
+      options: [
+        { value: 'bullet', label: t(locale, 'bulletList') },
+        { value: 'number', label: t(locale, 'numberedList') },
+        { value: 'check', label: t(locale, 'checklist') },
+      ],
+    },
+    {
+      label: t(locale, 'bulletStyle'),
+      options: [
+        {
+          value: 'bullet-disc',
+          label: t(locale, 'default'),
+          marker: (
+            <span className="inline-block h-2 w-2 rounded-full bg-gray-700" />
+          ),
+        },
+        {
+          value: 'bullet-circle',
+          label: t(locale, 'circle'),
+          marker: (
+            <span className="inline-block h-2 w-2 rounded-full border border-gray-700 bg-transparent" />
+          ),
+        },
+        {
+          value: 'bullet-square',
+          label: t(locale, 'square'),
+          marker: <span className="inline-block h-2 w-2 bg-gray-700" />,
+        },
+      ],
+    },
+    {
+      label: t(locale, 'numberStyle'),
+      options: [
+        {
+          value: 'number-decimal',
+          label: t(locale, 'numberDecimal'),
+          marker: (
+            <span className="w-4 text-center text-xs text-gray-500">1.</span>
+          ),
+        },
+        {
+          value: 'lower-alpha',
+          label: t(locale, 'lowerAlpha'),
+          marker: (
+            <span className="w-4 text-center text-xs text-gray-500">a.</span>
+          ),
+        },
+        {
+          value: 'upper-alpha',
+          label: t(locale, 'upperAlpha'),
+          marker: (
+            <span className="w-4 text-center text-xs text-gray-500">A.</span>
+          ),
+        },
+        {
+          value: 'lower-roman',
+          label: t(locale, 'lowerRoman'),
+          marker: (
+            <span className="w-4 text-center text-xs text-gray-500">i.</span>
+          ),
+        },
+        {
+          value: 'upper-roman',
+          label: t(locale, 'upperRoman'),
+          marker: (
+            <span className="w-4 text-center text-xs text-gray-500">I.</span>
+          ),
+        },
+      ],
+    },
+    {
+      label: t(locale, 'block'),
+      options: [
+        { value: 'quote', label: t(locale, 'quote') },
+        { value: 'code', label: t(locale, 'codeBlock') },
+      ],
+    },
+  ];
+}
 
 interface BlockGroupProps {
   blockType: BlockType;
@@ -125,16 +127,19 @@ export function BlockGroup({
 }: BlockGroupProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selected = ALL_OPTIONS.find((o) => o.value === blockType);
-  const display = selected ? selected.label : '正文';
+  const locale = useLocale();
+  const blockGroups = getBlockGroups(locale);
+  const allOptions = blockGroups.flatMap((g) => g.options);
+  const selected = allOptions.find((o) => o.value === blockType);
+  const display = selected ? selected.label : t(locale, 'paragraph');
 
   return (
     <>
       <div ref={ref} className="relative min-w-30">
         <button
           type="button"
-          title="段落样式"
-          aria-label="段落样式"
+          title={t(locale, 'paragraphStyle')}
+          aria-label={t(locale, 'paragraphStyle')}
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -155,7 +160,7 @@ export function BlockGroup({
             className="w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
           >
             <div className="max-h-80 overflow-y-auto">
-              {BLOCK_GROUPS.map((group, gi) => (
+              {blockGroups.map((group, gi) => (
                 <div key={group.label}>
                   {gi > 0 && <div className="my-1 border-t border-gray-100" />}
                   <div className="px-3 py-1 text-xs font-medium text-gray-400">
@@ -242,13 +247,14 @@ function CodeLanguageDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const locale = useLocale();
 
   return (
     <div ref={ref} className="relative w-32">
       <button
         type="button"
-        title="代码语言"
-        aria-label="代码语言"
+        title={t(locale, 'codeLang')}
+        aria-label={t(locale, 'codeLang')}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}

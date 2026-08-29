@@ -17,6 +17,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { t } from '../i18n';
+import { useLocale } from '../LocaleContext';
 import {
   TOGGLE_COMMENT_INPUT_COMMAND,
   UNWRAP_MARK_COMMAND,
@@ -120,6 +122,7 @@ function restoreSelection(saved: SavedSelection): RangeSelection {
  */
 export function CommentPlugin() {
   const [editor] = useLexicalComposerContext();
+  const locale = useLocale();
   const savedSelection = useRef<SavedSelection | null>(null);
   /** Thread whose comments were last loaded, so typing inside a mark
    *  doesn't re-fetch on every keystroke. */
@@ -377,7 +380,7 @@ export function CommentPlugin() {
                 type="button"
                 onClick={() => setInputOpen(false)}
                 className="rounded-md p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                title="Cancel"
+                title={t(locale, 'cancel')}
               >
                 <X size={14} />
               </button>
@@ -431,7 +434,7 @@ export function CommentPlugin() {
                 type="button"
                 onClick={() => setBubble(null)}
                 className="rounded-md p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                title="Close"
+                title={t(locale, 'close')}
               >
                 <X size={14} />
               </button>
@@ -461,7 +464,7 @@ export function CommentPlugin() {
                           type="button"
                           onClick={() => handleDelete(comment)}
                           className="rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                          title="Delete comment"
+                          title={t(locale, 'deleteComment')}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -493,7 +496,7 @@ export function CommentPlugin() {
                 onClick={handleReply}
                 disabled={!replyText.trim() || replySaving}
                 className="flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-                title="Send reply"
+                title={t(locale, 'sendReply')}
               >
                 {replySaving ? (
                   <Loader2 size={12} className="animate-spin" />
