@@ -27,7 +27,6 @@ import { FloatingTableActionsPlugin } from './FloatingTableActions';
 import { ImageNode } from './ImageNode';
 import { ListStyleNode } from './ListStyleNode';
 import { LocaleContext } from './LocaleContext';
-import type { Locale } from './i18n';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { RubyNode } from './RubyNode';
 import { SlashCommandsHost } from './SlashCommandsHost';
@@ -47,6 +46,7 @@ import {
   type OnChangeCallback,
   OnChangeExtension,
 } from './extensions';
+import type { Locale } from './i18n';
 import { editorTheme } from './theme';
 import { Toolbar } from './toolbar/Toolbar';
 
@@ -95,10 +95,10 @@ export function Editor({
 
   const contentEditable = (
     <ContentEditable
-      className="outline-none min-h-full leading-relaxed"
+      className="outline-none min-h-full leading-relaxed pl-14"
       aria-placeholder={placeholder}
       placeholder={
-        <div className="pointer-events-none absolute top-3 left-3 text-gray-400">
+        <div className="pointer-events-none absolute top-3 left-14 text-gray-400">
           {placeholder}
         </div>
       }
@@ -111,7 +111,13 @@ export function Editor({
         name: '@leditor/root',
         namespace: 'leditor',
         theme: editorTheme,
-        nodes: [ImageNode, HorizontalRuleNode, ListStyleNode, RubyNode, EquationNode],
+        nodes: [
+          ImageNode,
+          HorizontalRuleNode,
+          ListStyleNode,
+          RubyNode,
+          EquationNode,
+        ],
         dependencies: [
           // Render our own ContentEditable inside the custom layout below.
           configExtension(ReactExtension, { contentEditable: null }),
@@ -154,7 +160,7 @@ export function Editor({
           />
           <div className="flex flex-1 overflow-hidden">
             <div className="relative min-h-80 flex-1">
-              <div className="absolute inset-0 overflow-y-auto p-3">
+              <div className="absolute inset-0 overflow-y-auto py-3 pr-3">
                 {contentEditable}
               </div>
               {toc && !pinned && <TableOfContents pinned={pinned} />}

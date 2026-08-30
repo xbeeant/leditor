@@ -1,13 +1,14 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import {
+  $createParagraphNode,
   $getNearestNodeFromDOMNode,
   $getNodeByKey,
   $getSelection,
   $isElementNode,
   $isRangeSelection,
   type ElementNode,
-  type LexicalNode,
+  type LexicalEditor,
 } from 'lexical';
 import { GripVertical, Plus } from 'lucide-react';
 import {
@@ -17,11 +18,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
-import { t } from './i18n';
 import { useLocale } from './LocaleContext';
+import { t } from './i18n';
 
-const HANDLE_OVERHANG = 8;
 const INDICATOR_WIDTH = 2;
 
 type MenuState = {
@@ -41,16 +40,14 @@ function getTopLevelElementFromDOM(
   dom: HTMLElement,
   editor: LexicalEditor,
 ): ElementNode | null {
-  return editor
-    .getEditorState()
-    .read(
-      () => {
-        const nearest = $getNearestNodeFromDOMNode(dom);
-        const top = nearest ? nearest.getTopLevelElement() : null;
-        return $isElementNode(top) ? top : null;
-      },
-      { editor },
-    );
+  return editor.getEditorState().read(
+    () => {
+      const nearest = $getNearestNodeFromDOMNode(dom);
+      const top = nearest ? nearest.getTopLevelElement() : null;
+      return $isElementNode(top) ? top : null;
+    },
+    { editor },
+  );
 }
 
 export function FloatingBlockActionsPlugin(): JSX.Element | null {
@@ -60,6 +57,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
 
   const hoveredBlockKeyRef = useRef<string | null>(null);
   const menuRef = useRef<MenuState | null>(null);
+  const barRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ blockKey: string } | null>(null);
   const dropRef = useRef<DropState | null>(null);
 
@@ -73,14 +71,17 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       menuRef.current = null;
       setMenu(null);
     };
-    const clampLeft = (rect: DOMRect, width: number) =>
-      Math.max(
-        8,
-        Math.min(
-          rect.left - width - HANDLE_OVERHANG,
-          window.innerWidth - width - 8,
-        ),
+    const clampLeft = (rect: DOMRect, width: number, root: HTMLElement) => {
+      const rootLeft = root.getBoundingClientRect().left;
+      // 用实际渲染宽度计算：把手右缘与文本保持 8px 间距，左缘最多贴齐 ContentEditable 左缘，
+      // 完全落在 ContentEditable 自带的左侧 padding gutter 内，避免遮挡文本。
+      const w = barRef.current?.offsetWidth || width;
+      const byBlock = rect.left - w - 8;
+      return Math.min(
+        Math.max(byBlock, rootLeft),
+        window.innerWidth - w - 8,
       );
+    };
 
     const handleMouseMove = (event: MouseEvent) => {
       if (dragRef.current) {
@@ -93,9 +94,24 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       ) {
         return;
       }
-      const targetEl =
-        target instanceof HTMLElement ? target : null;
+      const targetEl = target instanceof HTMLElement ? target : null;
       const root = editor.getRootElement();
+
+      // 鼠标在操作把手自身或其附近时保持显示，避免「移向把手途中把手消失」。
+      const nearBar = () => {
+        const barEl = barRef.current;
+        if (!barEl) {
+          return false;
+        }
+        const r = barEl.getBoundingClientRect();
+        const pad = 12;
+        return (
+          event.clientX >= r.left - pad &&
+          event.clientX <= r.right + pad &&
+          event.clientY >= r.top - pad &&
+          event.clientY <= r.bottom + pad
+        );
+      };
 
       if (!targetEl || !root || !root.contains(targetEl)) {
         // 离开编辑区后保留一段缓冲距离，方便把鼠标移向把手。
@@ -110,7 +126,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
             return;
           }
         }
-        if (menuRef.current) {
+        if (menuRef.current && !nearBar()) {
           hide();
         }
         return;
@@ -118,7 +134,8 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
 
       const block = getTopLevelElementFromDOM(targetEl, editor);
       if (!block || block.getKey() === 'root') {
-        if (menuRef.current) {
+        // 鼠标落在块间空隙或把手右侧的 gutter 区，只要还在把手附近就不隐藏。
+        if (menuRef.current && !nearBar()) {
           hide();
         }
         return;
@@ -130,7 +147,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       }
       const rect = blockEl.getBoundingClientRect();
       const next = {
-        left: clampLeft(rect, 48),
+        left: clampLeft(rect, 48, root),
         top: rect.top + rect.height / 2,
         blockKey: block.getKey(),
       };
@@ -155,36 +172,35 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
   // 拖拽重排：原生 pointer 事件计算放置位置。
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
-      if (!dragRef.current) {
+      const drag = dragRef.current;
+      if (!drag) {
         return;
       }
       const root = editor.getRootElement();
       if (!root) {
         return;
       }
-      const siblings = editor
-        .getEditorState()
-        .read(
-          () => {
-            const from = $getNodeByKey(dragRef.current!.blockKey)?.getTopLevelElement();
-            if (!from) {
-              return [] as { key: string; el: HTMLElement }[];
+      const siblings = editor.getEditorState().read(
+        () => {
+          const from = $getNodeByKey(drag.blockKey)?.getTopLevelElement();
+          if (!from) {
+            return [] as { key: string; el: HTMLElement }[];
+          }
+          const parent = from.getParent();
+          if (!parent) {
+            return [];
+          }
+          const list: { key: string; el: HTMLElement }[] = [];
+          for (const child of parent.getChildren()) {
+            const el = editor.getElementByKey(child.getKey());
+            if (el) {
+              list.push({ key: child.getKey(), el });
             }
-            const parent = from.getParent();
-            if (!parent) {
-              return [];
-            }
-            const list: { key: string; el: HTMLElement }[] = [];
-            for (const child of parent.getChildren()) {
-              const el = editor.getElementByKey(child.getKey());
-              if (el) {
-                list.push({ key: child.getKey(), el });
-              }
-            }
-            return list;
-          },
-          { editor },
-        );
+          }
+          return list;
+        },
+        { editor },
+      );
 
       let targetKey: string | null = null;
       let before = false;
@@ -198,7 +214,13 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       }
 
       const next: DropState | null = targetKey
-        ? { top: before ? (getRect(targetKey)?.top ?? 0) : (getRect(targetKey)?.bottom ?? 0), targetKey, before }
+        ? {
+            top: before
+              ? (getRect(targetKey)?.top ?? 0)
+              : (getRect(targetKey)?.bottom ?? 0),
+            targetKey,
+            before,
+          }
         : null;
       dropRef.current = next;
       setDrop(next);
@@ -266,7 +288,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       if (!top) {
         return;
       }
-      const paragraph = top.appendParagraph();
+      const paragraph = $createParagraphNode();
       top.insertAfter(paragraph);
       paragraph.select();
     });
@@ -290,6 +312,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
     <>
       {menu && (
         <div
+          ref={barRef}
           data-block-actions-bar
           className="fixed z-50 flex -translate-y-1/2 items-center gap-0.5 rounded-md border border-gray-200 bg-white/95 p-0.5 shadow-sm backdrop-blur"
           style={{ left: menu.left, top: menu.top }}
@@ -306,7 +329,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
           <button
             type="button"
             title={t(locale, 'dragToMove')}
-            className={`${handleClass} cursor-grab active:cursor-grabbing ${
+            className={`${handleClass} cursor-grab ${
               isDragging ? 'text-gray-900' : ''
             }`}
             onPointerDown={handleDragStart}
@@ -323,7 +346,12 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
         >
           <div
             className="rounded-full"
-            style={{ width: window.innerWidth - 16, height: INDICATOR_WIDTH, backgroundColor: '#3b82f6', boxShadow: '0 0 0 1px rgba(59,130,246,0.35)' }}
+            style={{
+              width: window.innerWidth - 16,
+              height: INDICATOR_WIDTH,
+              backgroundColor: '#3b82f6',
+              boxShadow: '0 0 0 1px rgba(59,130,246,0.35)',
+            }}
           />
         </div>
       )}
