@@ -8,8 +8,8 @@ import {
 } from 'lexical';
 import { Loader2, MessageSquare, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { UNWRAP_MARK_COMMAND } from './commentCommands';
 import { timeAgo } from './format';
 import { mockCommentsApi } from './mockApi';
@@ -183,6 +183,12 @@ export function CommentPanel() {
     }
     await refresh();
   };
+
+  // 没有评论时(含首次加载中)不渲染面板,避免空面板闪现;
+  // 一旦加载出评论或后续新增评论,面板自动显示。
+  if (threads.length === 0) {
+    return null;
+  }
 
   return (
     <aside className="flex w-72 shrink-0 flex-col border-l border-gray-200 bg-gray-50/50">
