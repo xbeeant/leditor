@@ -5,8 +5,8 @@ import { $getNearestNodeFromDOMNode, $getNodeByKey } from 'lexical';
 import { Check, ChevronDown, Copy } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { t } from './i18n';
 import { useLocale } from './LocaleContext';
+import { t } from './i18n';
 
 const CODE_LANGUAGES = [
   // Web
@@ -53,12 +53,14 @@ const CODE_LANGUAGES = [
 interface CodeBlockToolbarProps {
   codeNodeKey: string;
   codeElement: HTMLElement;
+  readOnly: boolean;
   onClose: () => void;
 }
 
 function CodeBlockToolbar({
   codeNodeKey,
   codeElement,
+  readOnly,
   onClose,
 }: CodeBlockToolbarProps): JSX.Element {
   const [editor] = useLexicalComposerContext();
@@ -138,14 +140,16 @@ function CodeBlockToolbar({
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="relative" ref={languageMenuRef}>
-        <button
-          type="button"
-          onClick={() => setShowLanguageMenu((v) => !v)}
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-        >
-          <span>{language}</span>
-          <ChevronDown size={10} />
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setShowLanguageMenu((v) => !v)}
+            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <span>{language}</span>
+            <ChevronDown size={10} />
+          </button>
+        )}
 
         {showLanguageMenu && (
           <div className="absolute right-0 top-full z-50 mt-1 w-36 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
@@ -198,8 +202,6 @@ export function CodeBlockPlugin(): JSX.Element | null {
   } | null>(null);
 
   useEffect(() => {
-    if (!isEditable) return;
-
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const handleMouseOver = (event: MouseEvent) => {
@@ -255,9 +257,9 @@ export function CodeBlockPlugin(): JSX.Element | null {
       document.removeEventListener('mouseout', handleMouseOut);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [editor, isEditable]);
+  }, [editor]);
 
-  if (!isEditable || !hoveredCode) {
+  if (!hoveredCode) {
     return null;
   }
 
@@ -266,6 +268,7 @@ export function CodeBlockPlugin(): JSX.Element | null {
       <CodeBlockToolbar
         codeNodeKey={hoveredCode.key}
         codeElement={hoveredCode.element}
+        readOnly={!isEditable}
         onClose={() => setHoveredCode(null)}
       />
     </div>,
