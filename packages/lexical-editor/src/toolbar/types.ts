@@ -42,7 +42,9 @@ export type InsertBlockType =
   | 'upper-roman'
   | 'table'
   | 'divider'
-  | 'image';
+  | 'image'
+  | 'equation'
+  | 'inlineEquation';
 
 /** 独立列表插入按钮支持的格式 */
 export type ListFormatType =

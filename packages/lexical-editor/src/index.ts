@@ -1,4 +1,6 @@
+import 'katex/dist/katex.min.css';
 import './checklist.css';
+import './equation.css';
 import Editor from './Editor';
 import {
   TOGGLE_COMMENT_INPUT_COMMAND,

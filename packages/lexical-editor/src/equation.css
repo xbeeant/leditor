@@ -1,0 +1,60 @@
+.EquationEditor_inlineEditor {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  color: #8421a2;
+  background-color: inherit;
+  resize: none;
+}
+
+.EquationEditor_blockEditor {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  color: #8421a2;
+  background-color: inherit;
+  resize: none;
+  width: 100%;
+}
+
+.EquationEditor_inputBackground {
+  background-color: #eee;
+}
+
+.EquationEditor_dollarSign {
+  text-align: left;
+  color: #b0b0b0;
+}
+
+.editor-equation {
+  cursor: default;
+  user-select: none;
+}
+
+/* 行内公式：必须与文本在同一行，不要独占一行 */
+.editor-equation[data-lexical-inline="true"] {
+  display: inline;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+/* KaTeX 内部同样保持 inline 流，避免 fraction 等元素把行高撑得过高 */
+.editor-equation[data-lexical-inline="true"] .katex {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+/* 块级公式 */
+.editor-equation[data-lexical-inline="false"],
+.editor-equation:not([data-lexical-inline]) {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.editor-equation.focused {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

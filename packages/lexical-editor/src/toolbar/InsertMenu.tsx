@@ -12,6 +12,7 @@ import {
   Minus,
   Pilcrow,
   Quote,
+  Sigma,
   SquarePlus,
   Table as TableIcon,
 } from 'lucide-react';
@@ -66,6 +67,8 @@ function getSections(locale: Locale): InsertSection[] {
         { type: 'table', label: t(locale, 'insertTable'), icon: TableIcon },
         { type: 'divider', label: t(locale, 'insertDivider'), icon: Minus },
         { type: 'image', label: t(locale, 'insertImage'), icon: ImageIcon },
+        { type: 'equation', label: t(locale, 'insertEquation'), icon: Sigma },
+        { type: 'inlineEquation', label: t(locale, 'insertInlineEquation'), icon: Sigma },
       ],
     },
   ];
@@ -90,6 +93,7 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
         aria-label={t(locale, 'insert')}
         aria-haspopup="menu"
         aria-expanded={open}
+        onMouseDown={(e) => e.preventDefault()}
         onClick={() => setOpen((v) => !v)}
         className="flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-blue-400"
       >
@@ -126,6 +130,7 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
                     key={item.type}
                     type="button"
                     role="menuitem"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       if (item.type === 'table') {
                         setTablePickerOpen(true);

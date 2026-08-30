@@ -61,6 +61,7 @@ export const editorTheme = {
   },
   hr: 'border-t border-gray-300 my-4',
   image: 'max-w-full h-auto my-2 rounded',
+  equation: 'editor-equation',
   link: 'text-blue-600 underline cursor-pointer',
   table: 'border-collapse w-full my-2 table-fixed',
   tableScrollableWrapper: 'overflow-auto',

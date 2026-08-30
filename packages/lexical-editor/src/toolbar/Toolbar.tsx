@@ -45,6 +45,9 @@ import {
 import { List, Globe, Eye, EyeOff, MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { $createImageNode } from '../ImageNode';
+import { ImageModal } from '../ImageModal';
+import { $createEquationNode } from '../EquationNode';
+import { EquationModal } from '../EquationModal';
 import { type Locale, t, localeNames } from '../i18n';
 import {
   $createListStyleNode,
@@ -55,6 +58,7 @@ import { $createRubyNode } from '../RubyNode';
 import {
   $createTable,
   insertBlockAfter,
+  insertBlockWithParagraphAfter,
   insertParagraphAfter,
 } from '../commands';
 import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
@@ -124,6 +128,17 @@ export function Toolbar({
   const [linkUrl, setLinkUrl] = useState('');
   const [linkActive, setLinkActive] = useState(false);
   const [inTable, setInTable] = useState(false);
+  const [equationModalOpen, setEquationModalOpen] = useState(false);
+  const [equationModalInline, setEquationModalInline] = useState(false);
+  const [equationCursorPosition, setEquationCursorPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [imageCursorPosition, setImageCursorPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   const updateToolbar = useCallback(() => {
@@ -457,11 +472,88 @@ export function Toolbar({
     insertBlockAfter(editor, () => $createTable(cols, rows));
   };
 
+  /**
+   * 获取编辑器内光标位置，用于定位公式 / 图片模态框。
+   *
+   * 不能直接依赖 window.getSelection()：点击 toolbar 按钮后编辑器失焦，
+   * 浏览器选区会落在按钮上（toolbar 区域），导致模态框定位错误。
+   * 因此优先从 Lexical 维护的选区锚点节点拿到 DOM 元素来定位。
+   */
+  const getCursorPosition = useCallback((): { x: number; y: number } | null => {
+    const editorRoot = editor.getRootElement();
+
+    // 1. 浏览器实时选区（配合 toolbar 按钮 onMouseDown preventDefault，
+    //    光标仍停留在编辑器内；此处再校验选区确在编辑器 DOM 内兜底）
+    const domSelection = window.getSelection();
+    if (domSelection && domSelection.rangeCount > 0 && editorRoot) {
+      const range = domSelection.getRangeAt(0);
+      // 选区容器必须位于编辑器 DOM 树内，避免取到按钮等外部位置
+      if (editorRoot.contains(range.commonAncestorContainer)) {
+        const rect = range.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.bottom };
+      }
+    }
+
+    // 2. 从 Lexical 选区锚点节点定位（编辑器失焦后仍可靠）
+    let pos: { x: number; y: number } | null = null;
+    editor.getEditorState().read(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+      const element = editor.getElementByKey(selection.anchor.getNode().getKey());
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        pos = { x: rect.left + rect.width / 2, y: rect.bottom };
+      }
+    });
+    if (pos) return pos;
+
+    // 3. 兜底：编辑器中心偏上
+    if (editorRoot) {
+      const editorRect = editorRoot.getBoundingClientRect();
+      return {
+        x: editorRect.left + editorRect.width / 2,
+        y: editorRect.top + Math.min(120, editorRect.height / 3),
+      };
+    }
+    return null;
+  }, [editor]);
+
   const insertImage = () => {
-    const src = window.prompt('Image URL');
-    if (!src) return;
-    const altText = window.prompt('Alt text', '') ?? '';
+    setImageCursorPosition(getCursorPosition());
+    setImageModalOpen(true);
+  };
+
+  const handleImageConfirm = (src: string, altText: string) => {
     insertBlockAfter(editor, () => $createImageNode({ src, altText }));
+  };
+
+  const insertEquation = (inline: boolean) => {
+    setEquationCursorPosition(getCursorPosition());
+    setEquationModalInline(inline);
+    setEquationModalOpen(true);
+  };
+
+  const handleEquationConfirm = (equation: string) => {
+    if (equationModalInline) {
+      // 行内公式：插入到当前光标位置，与周围文本同行
+      const hasRange = editor.getEditorState().read(() => {
+        const selection = $getSelection();
+        return $isRangeSelection(selection);
+      });
+      if (hasRange) {
+        editor.update(() => {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) return;
+          selection.insertNodes([$createEquationNode(equation, true)]);
+        });
+        editor.focus();
+        return;
+      }
+    }
+    // 块级公式（或无有效选区时退化为块级插入），其后追加正文段落以便继续输入
+    insertBlockWithParagraphAfter(editor, () =>
+      $createEquationNode(equation, equationModalInline),
+    );
   };
 
   const insertBlockOfType = (type: InsertBlockType) => {
@@ -516,6 +608,12 @@ export function Toolbar({
         break;
       case 'image':
         insertImage();
+        break;
+      case 'equation':
+        insertEquation(false);
+        break;
+      case 'inlineEquation':
+        insertEquation(true);
         break;
       default:
         break;
@@ -784,6 +882,19 @@ export function Toolbar({
           {readOnly ? <EyeOff size={14} /> : <Eye size={14} />}
         </button>
       </div>
+      <EquationModal
+        open={equationModalOpen}
+        onClose={() => setEquationModalOpen(false)}
+        onConfirm={handleEquationConfirm}
+        title={equationModalInline ? '插入行内公式' : '插入公式'}
+        cursorPosition={equationCursorPosition}
+      />
+      <ImageModal
+        open={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        onConfirm={handleImageConfirm}
+        cursorPosition={imageCursorPosition}
+      />
     </div>
   );
 }

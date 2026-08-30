@@ -19,15 +19,18 @@ import {
   defineExtension,
 } from 'lexical';
 import { useMemo, useRef, useState } from 'react';
+import { FloatingBlockActionsPlugin } from './BlockActions';
 import { CodeBlockPlugin } from './CodeBlockPlugin';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
+import { EquationNode } from './EquationNode';
 import { FloatingTableActionsPlugin } from './FloatingTableActions';
-import { type Locale } from './i18n';
 import { ImageNode } from './ImageNode';
-import { LocaleContext } from './LocaleContext';
 import { ListStyleNode } from './ListStyleNode';
+import { LocaleContext } from './LocaleContext';
+import type { Locale } from './i18n';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { RubyNode } from './RubyNode';
+import { SlashCommandsHost } from './SlashCommandsHost';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
 import { TableOfContents } from './TableOfContents';
@@ -39,6 +42,7 @@ import { CommentPlugin } from './comment/CommentPlugin';
 import {
   HorizontalRuleExtension,
   InitialValueExtension,
+  InsertEquationExtension,
   InsertImageExtension,
   type OnChangeCallback,
   OnChangeExtension,
@@ -107,7 +111,7 @@ export function Editor({
         name: '@leditor/root',
         namespace: 'leditor',
         theme: editorTheme,
-        nodes: [ImageNode, HorizontalRuleNode, ListStyleNode, RubyNode],
+        nodes: [ImageNode, HorizontalRuleNode, ListStyleNode, RubyNode, EquationNode],
         dependencies: [
           // Render our own ContentEditable inside the custom layout below.
           configExtension(ReactExtension, { contentEditable: null }),
@@ -125,6 +129,7 @@ export function Editor({
           configExtension(InitialValueExtension, { initialValue }),
           configExtension(OnChangeExtension, { onChangeRef }),
           InsertImageExtension,
+          InsertEquationExtension,
           CodeHighlightExtension,
           CommentExtension,
         ],
@@ -163,6 +168,8 @@ export function Editor({
           <TableDragSelectFix />
           <CommentPlugin />
           <CodeBlockPlugin />
+          <FloatingBlockActionsPlugin />
+          <SlashCommandsHost />
         </LexicalExtensionComposer>
       </div>
     </LocaleContext.Provider>

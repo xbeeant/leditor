@@ -107,6 +107,10 @@ const zhCN: Messages = {
   insertTable: '表格',
   insertDivider: '分割线',
   insertImage: '图片',
+  insertEquation: '公式',
+  insertInlineEquation: '行内公式',
+  editEquation: '编辑公式',
+  equationPlaceholder: '输入LaTeX公式...',
   // BlockGroup titles
   paragraphStyle: '段落样式',
   codeLang: '代码语言',
@@ -118,6 +122,9 @@ const zhCN: Messages = {
   rubyAnnotation: '注音',
   deleteComment: '删除评论',
   sendReply: '发送回复',
+  // BlockActions
+  insertBelow: '在下方插入',
+  dragToMove: '拖拽移动',
 };
 
 const en: Messages = {
@@ -223,6 +230,10 @@ const en: Messages = {
   insertTable: 'Table',
   insertDivider: 'Divider',
   insertImage: 'Image',
+  insertEquation: 'Equation',
+  insertInlineEquation: 'Inline Equation',
+  editEquation: 'Edit Equation',
+  equationPlaceholder: 'Enter LaTeX equation...',
   // BlockGroup titles
   paragraphStyle: 'Paragraph Style',
   codeLang: 'Code Language',
@@ -234,6 +245,9 @@ const en: Messages = {
   rubyAnnotation: 'Ruby annotation',
   deleteComment: 'Delete comment',
   sendReply: 'Send reply',
+  // BlockActions
+  insertBelow: 'Insert below',
+  dragToMove: 'Drag to move',
 };
 
 const messages: Record<Locale, Messages> = {

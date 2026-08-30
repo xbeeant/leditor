@@ -12,7 +12,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
@@ -33,11 +35,13 @@
     "@lexical/rich-text": "^0.49.0",
     "@lexical/table": "^0.49.0",
     "@lexical/utils": "^0.49.0",
+    "katex": "^0.16.0",
     "lexical": "^0.49.0",
     "lucide-react": "^0.460.0",
     "prismjs": "^1.29.0"
   },
   "devDependencies": {
+    "@types/katex": "^0.16.0",
     "@types/prismjs": "^1.26.6",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
