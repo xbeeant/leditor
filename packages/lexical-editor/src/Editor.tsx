@@ -6,6 +6,7 @@ import {
 import { HistoryExtension } from '@lexical/history';
 import { LinkExtension } from '@lexical/link';
 import { CheckListExtension, ListExtension } from '@lexical/list';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalExtensionComposer } from '@lexical/react/LexicalExtensionComposer';
 import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode';
@@ -18,7 +19,7 @@ import {
   configExtension,
   defineExtension,
 } from 'lexical';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FloatingBlockActionsPlugin } from './BlockActions';
 import { CodeBlockPlugin } from './CodeBlockPlugin';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
@@ -60,10 +61,26 @@ export interface EditorProps {
   locale?: Locale;
   /** Called when the locale changes. */
   onLocaleChange?: (locale: Locale) => void;
-  /** Initial read-only state. Defaults to `false`. */
+  /**
+   * Controlled read-only state. When provided, the editor is fully controlled
+   * by the caller; otherwise the toolbar toggles it internally.
+   * The toolbar is hidden while read-only. Defaults to `false`.
+   */
   readOnly?: boolean;
   /** Called when the read-only state changes. */
   onReadOnlyChange?: (readOnly: boolean) => void;
+}
+
+/**
+ * 将 React 层的 readOnly 状态同步到 Lexical 编辑器的 editable 状态。
+ * 必须位于 LexicalExtensionComposer 内部才能拿到 editor 实例。
+ */
+function ReadOnlySync({ readOnly }: { readOnly: boolean }) {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
+  return null;
 }
 
 export function Editor({
@@ -73,7 +90,7 @@ export function Editor({
   toc = true,
   locale: initialLocale = 'zh-CN',
   onLocaleChange,
-  readOnly: initialReadOnly = false,
+  readOnly: readOnlyProp,
   onReadOnlyChange,
 }: EditorProps) {
   const onChangeRef = useRef<OnChangeCallback | undefined>(onChange);
@@ -81,7 +98,11 @@ export function Editor({
   const [pinned, setPinned] = useState(false);
   const [showComments, setShowComments] = useState(true);
   const [locale, setLocale] = useState<Locale>(initialLocale);
-  const [readOnly, setReadOnly] = useState(initialReadOnly);
+  // 传入 readOnly prop 时为受控模式,以外部值为准;否则内部自管(非受控)。
+  const [internalReadOnly, setInternalReadOnly] = useState(false);
+  const readOnly = readOnlyProp ?? internalReadOnly;
+  // 初始只读状态仅在首次挂载时生效,后续切换由 ReadOnlySync 通过 setEditable 控制。
+  const initialReadOnlyRef = useRef(readOnlyProp ?? false);
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale);
@@ -89,7 +110,9 @@ export function Editor({
   };
 
   const handleReadOnlyChange = (newReadOnly: boolean) => {
-    setReadOnly(newReadOnly);
+    if (readOnlyProp === undefined) {
+      setInternalReadOnly(newReadOnly);
+    }
     onReadOnlyChange?.(newReadOnly);
   };
 
@@ -111,6 +134,8 @@ export function Editor({
         name: '@leditor/root',
         namespace: 'leditor',
         theme: editorTheme,
+        // 初始可编辑状态与 readOnly 相反
+        editable: !initialReadOnlyRef.current,
         nodes: [
           ImageNode,
           HorizontalRuleNode,
@@ -147,17 +172,20 @@ export function Editor({
     <LocaleContext.Provider value={locale}>
       <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         <LexicalExtensionComposer extension={editorExtension}>
-          <Toolbar
-            toc={toc}
-            onTogglePin={() => setPinned(() => !pinned)}
-            pinned={pinned}
-            showComments={showComments}
-            onToggleComments={() => setShowComments((v) => !v)}
-            locale={locale}
-            onLocaleChange={handleLocaleChange}
-            readOnly={readOnly}
-            onReadOnlyChange={handleReadOnlyChange}
-          />
+          <ReadOnlySync readOnly={readOnly} />
+          {!readOnly && (
+            <Toolbar
+              toc={toc}
+              onTogglePin={() => setPinned(() => !pinned)}
+              pinned={pinned}
+              showComments={showComments}
+              onToggleComments={() => setShowComments((v) => !v)}
+              locale={locale}
+              onLocaleChange={handleLocaleChange}
+              readOnly={readOnly}
+              onReadOnlyChange={handleReadOnlyChange}
+            />
+          )}
           <div className="flex flex-1 overflow-hidden">
             <div className="relative min-h-80 flex-1">
               <div className="absolute inset-0 overflow-y-auto py-3 pr-3">
@@ -166,6 +194,7 @@ export function Editor({
               {toc && !pinned && <TableOfContents pinned={pinned} />}
             </div>
             {toc && pinned && <TableOfContents pinned={pinned} />}
+            {/* showComments 控制面板是否挂载;无评论时 CommentPanel 内部返回 null */}
             {showComments && <CommentPanel />}
           </div>
           <TablePlugin />

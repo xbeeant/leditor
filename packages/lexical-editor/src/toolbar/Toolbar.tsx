@@ -42,7 +42,14 @@ import {
   REDO_COMMAND,
   UNDO_COMMAND,
 } from 'lexical';
-import { List, Globe, Eye, EyeOff, MessageSquare, MessageSquarePlus } from 'lucide-react';
+import {
+  List,
+  Globe,
+  Eye,
+  EyeOff,
+  MessageSquare,
+  MessageSquarePlus,
+} from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { $createImageNode } from '../ImageNode';
 import { ImageModal } from '../ImageModal';
