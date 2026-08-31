@@ -1,0 +1,12 @@
+/* 宽表格滚动阴影指示 */
+.lexical-table-scroll-left {
+  box-shadow: inset 12px 0 10px -12px rgba(0, 0, 0, 0.35);
+}
+.lexical-table-scroll-right {
+  box-shadow: inset -12px 0 10px -12px rgba(0, 0, 0, 0.35);
+}
+.lexical-table-scroll-middle {
+  box-shadow:
+    inset 12px 0 10px -12px rgba(0, 0, 0, 0.35),
+    inset -12px 0 10px -12px rgba(0, 0, 0, 0.35);
+}

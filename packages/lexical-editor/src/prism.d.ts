@@ -12,3 +12,8 @@ declare module 'prismjs' {
 }
 
 declare module 'prismjs/components/*';
+
+declare module 'plantuml-encoder' {
+  const encoder: { encode: (text: string) => string };
+  export default encoder;
+}

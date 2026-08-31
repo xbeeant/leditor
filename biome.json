@@ -26,7 +26,8 @@
         "noExplicitAny": "off"
       },
       "a11y": {
-        "noAutofocus": "off"
+        "noAutofocus": "off",
+        "useMediaCaption": "off"
       }
     }
   },

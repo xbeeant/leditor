@@ -12,12 +12,18 @@ import type { EditorState, LexicalEditor } from 'lexical';
 import { $createEquationNode, EquationNode } from './EquationNode';
 import { $createImageNode, ImageNode } from './ImageNode';
 import {
+  INSERT_AUDIO_COMMAND,
   INSERT_EQUATION_COMMAND,
   INSERT_IMAGE_COMMAND,
-  insertBlockWithParagraphAfter,
+  INSERT_VIDEO_COMMAND,
+  type InsertAudioPayload,
   type InsertEquationPayload,
   type InsertImagePayload,
+  type InsertVideoPayload,
+  insertBlockWithParagraphAfter,
 } from './commands';
+import { $createAudioNode, AudioNode } from './media/AudioNode';
+import { $createVideoNode, VideoNode } from './media/VideoNode';
 
 export type OnChangeCallback = (
   editorState: EditorState,
@@ -130,6 +136,55 @@ export const InsertEquationExtension = defineExtension({
         // 块级公式：插入后追加一个正文段落，光标落入新段落以便继续输入
         insertBlockWithParagraphAfter(editor, () =>
           $createEquationNode(payload.equation, false),
+        );
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  },
+});
+
+/**
+ * 注册 `INSERT_VIDEO_COMMAND`,在光标后插入视频节点并追加正文段落,
+ * 使光标能继续输入。视频为块级、无自带光标。
+ */
+export const InsertVideoExtension = defineExtension({
+  name: '@leditor/insert-video',
+  register(editor) {
+    if (!editor.hasNodes([VideoNode])) {
+      throw new Error('InsertVideoExtension: VideoNode not registered');
+    }
+    return editor.registerCommand<InsertVideoPayload>(
+      INSERT_VIDEO_COMMAND,
+      (payload) => {
+        insertBlockWithParagraphAfter(editor, () =>
+          $createVideoNode({
+            src: payload.src,
+            width: payload.width,
+            height: payload.height,
+          }),
+        );
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  },
+});
+
+/**
+ * 注册 `INSERT_AUDIO_COMMAND`,在光标后插入音频节点并追加正文段落。
+ */
+export const InsertAudioExtension = defineExtension({
+  name: '@leditor/insert-audio',
+  register(editor) {
+    if (!editor.hasNodes([AudioNode])) {
+      throw new Error('InsertAudioExtension: AudioNode not registered');
+    }
+    return editor.registerCommand<InsertAudioPayload>(
+      INSERT_AUDIO_COMMAND,
+      (payload) => {
+        insertBlockWithParagraphAfter(editor, () =>
+          $createAudioNode({ src: payload.src }),
         );
         return true;
       },

@@ -20,15 +20,26 @@ import {
   defineExtension,
 } from 'lexical';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { LexicalAutoLinkPlugin } from './AutoLinkPlugin';
 import { FloatingBlockActionsPlugin } from './BlockActions';
 import { CodeBlockPlugin } from './CodeBlockPlugin';
 import { CodeHighlightExtension } from './CodeHighlightPlugin';
+import { CodePastePlugin } from './CodePastePlugin';
 import { EquationNode } from './EquationNode';
+import { ExcelTablePastePlugin } from './ExcelTablePastePlugin';
 import { FloatingTableActionsPlugin } from './FloatingTableActions';
+import { FloatingToolbar } from './FloatingToolbar';
+import { CalloutNode } from './CalloutNode';
+import { CalloutPlugin } from './CalloutPlugin';
+import { CodeDrawingNode } from './CodeDrawingNode';
+import { CodeDrawingPlugin } from './CodeDrawingPlugin';
 import { ImageNode } from './ImageNode';
 import { ListStyleNode } from './ListStyleNode';
 import { LocaleContext } from './LocaleContext';
 import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
+import { MermaidNode } from './MermaidNode';
+import { MermaidPlugin } from './MermaidPlugin';
+import { PasteMediaPlugin } from './PasteMediaPlugin';
 import { RubyNode } from './RubyNode';
 import { SlashCommandsHost } from './SlashCommandsHost';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
@@ -36,27 +47,44 @@ import TableCellResizerPlugin from './TableCellResizerPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
 import { TableOfContents } from './TableOfContents';
 import { TablePlugin } from './TablePlugin';
+import { TableScrollShadowPlugin } from './TableScrollShadowPlugin';
+import { UniversalBlockEscapePlugin } from './UniversalBlockEscapePlugin';
 import { UploadImagesPlugin } from './UploadImagesPlugin';
-import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
+import {
+  INSERT_AUDIO_COMMAND,
+  INSERT_IMAGE_COMMAND,
+  INSERT_VIDEO_COMMAND,
+  type InsertAudioPayload,
+  type InsertImagePayload,
+  type InsertVideoPayload,
+} from './commands';
 import { CommentExtension } from './comment/CommentExtension';
 import { CommentPanel } from './comment/CommentPanel';
 import { CommentPlugin } from './comment/CommentPlugin';
 import {
   HorizontalRuleExtension,
   InitialValueExtension,
+  InsertAudioExtension,
   InsertEquationExtension,
   InsertImageExtension,
+  InsertVideoExtension,
   type OnChangeCallback,
   OnChangeExtension,
 } from './extensions';
 import { FindReplaceDialog } from './find/FindReplaceDialog';
 import type { Locale } from './i18n';
+import { AudioNode } from './media/AudioNode';
+import { MediaConfigProvider } from './media/MediaConfigContext';
+import { VideoNode } from './media/VideoNode';
+import type { MediaConfig } from './media/config';
 import { editorTheme } from './theme';
 import { Toolbar } from './toolbar/Toolbar';
 
 export interface EditorProps {
   initialValue?: string;
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
+  /** 统一的图片/视频/音频上传下载配置。未配置上传 URL 时禁用文件上传。 */
+  media?: MediaConfig;
   placeholder?: string;
   /** Enable the table-of-contents feature. Defaults to `true`. */
   toc?: boolean;
@@ -89,6 +117,7 @@ function ReadOnlySync({ readOnly }: { readOnly: boolean }) {
 export function Editor({
   initialValue,
   onChange,
+  media,
   placeholder = 'Start writing…',
   toc = true,
   locale: initialLocale = 'zh-CN',
@@ -107,6 +136,15 @@ export function Editor({
   const readOnly = readOnlyProp ?? internalReadOnly;
   // 初始只读状态仅在首次挂载时生效,后续切换由 ReadOnlySync 通过 setEditable 控制。
   const initialReadOnlyRef = useRef(readOnlyProp ?? false);
+  // 作为浮动工具栏 / 块操作等浮动元素的定位锚点
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [floatingAnchor, setFloatingAnchor] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  useEffect(() => {
+    setFloatingAnchor(editorContainerRef.current);
+  }, []);
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale);
@@ -142,10 +180,15 @@ export function Editor({
         editable: !initialReadOnlyRef.current,
         nodes: [
           ImageNode,
+          VideoNode,
+          AudioNode,
           HorizontalRuleNode,
           ListStyleNode,
           RubyNode,
           EquationNode,
+          MermaidNode,
+          CalloutNode,
+          CodeDrawingNode,
         ],
         dependencies: [
           // Render our own ContentEditable inside the custom layout below.
@@ -164,6 +207,8 @@ export function Editor({
           configExtension(InitialValueExtension, { initialValue }),
           configExtension(OnChangeExtension, { onChangeRef }),
           InsertImageExtension,
+          InsertVideoExtension,
+          InsertAudioExtension,
           InsertEquationExtension,
           CodeHighlightExtension,
           CommentExtension,
@@ -174,56 +219,76 @@ export function Editor({
 
   return (
     <LocaleContext.Provider value={locale}>
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        <LexicalExtensionComposer extension={editorExtension}>
-          <ReadOnlySync readOnly={readOnly} />
-          {!readOnly && (
-            <Toolbar
-              toc={toc}
-              onTogglePin={() => setPinned(() => !pinned)}
-              pinned={pinned}
-              showComments={showComments}
-              onToggleComments={() => setShowComments((v) => !v)}
-              onToggleFindReplace={() => setFindReplaceOpen((v) => !v)}
-              locale={locale}
-              onLocaleChange={handleLocaleChange}
-              readOnly={readOnly}
-              onReadOnlyChange={handleReadOnlyChange}
-            />
-          )}
-          <div className="flex flex-1 overflow-hidden">
-            <div className="relative min-h-80 flex-1">
-              <div className="absolute inset-0 overflow-y-auto py-3 pr-3">
-                {contentEditable}
+      <MediaConfigProvider config={media}>
+        <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <LexicalExtensionComposer extension={editorExtension}>
+            <ReadOnlySync readOnly={readOnly} />
+            {!readOnly && (
+              <Toolbar
+                toc={toc}
+                onTogglePin={() => setPinned(() => !pinned)}
+                pinned={pinned}
+                showComments={showComments}
+                onToggleComments={() => setShowComments((v) => !v)}
+                onToggleFindReplace={() => setFindReplaceOpen((v) => !v)}
+                locale={locale}
+                onLocaleChange={handleLocaleChange}
+                readOnly={readOnly}
+                onReadOnlyChange={handleReadOnlyChange}
+              />
+            )}
+            <div className="flex flex-1 overflow-hidden">
+              <div className="relative min-h-80 flex-1">
+                <div
+                  ref={editorContainerRef}
+                  className="absolute inset-0 overflow-y-auto py-3 pr-3"
+                >
+                  {contentEditable}
+                </div>
+                {toc && !pinned && <TableOfContents pinned={pinned} />}
               </div>
-              {toc && !pinned && <TableOfContents pinned={pinned} />}
+              {toc && pinned && <TableOfContents pinned={pinned} />}
+              {/* showComments 控制面板是否挂载;无评论时 CommentPanel 内部返回 null */}
+              {showComments && <CommentPanel />}
             </div>
-            {toc && pinned && <TableOfContents pinned={pinned} />}
-            {/* showComments 控制面板是否挂载;无评论时 CommentPanel 内部返回 null */}
-            {showComments && <CommentPanel />}
-          </div>
-          <TablePlugin />
-          <TableActionMenuPlugin />
-          <TableCellResizerPlugin />
-          <FloatingTableActionsPlugin />
-          <TableDragSelectFix />
-          <CommentPlugin />
-          <CodeBlockPlugin />
-          <FloatingBlockActionsPlugin />
-          <SlashCommandsHost />
-          <UploadImagesPlugin />
-          <FindReplaceDialog
-            open={findReplaceOpen}
-            onOpenChange={setFindReplaceOpen}
-          />
-        </LexicalExtensionComposer>
-      </div>
+            <TablePlugin />
+            <TableActionMenuPlugin />
+            <TableCellResizerPlugin />
+            <TableScrollShadowPlugin />
+            <FloatingTableActionsPlugin />
+            <TableDragSelectFix />
+            <CommentPlugin />
+            <CodeBlockPlugin />
+            <FloatingBlockActionsPlugin />
+            <SlashCommandsHost />
+            <LexicalAutoLinkPlugin />
+            <CodePastePlugin />
+            <MermaidPlugin />
+            <CalloutPlugin />
+            <CodeDrawingPlugin />
+            <UploadImagesPlugin />
+            <PasteMediaPlugin />
+            <ExcelTablePastePlugin />
+            {floatingAnchor && <FloatingToolbar anchorElem={floatingAnchor} />}
+            <UniversalBlockEscapePlugin />
+            <FindReplaceDialog
+              open={findReplaceOpen}
+              onOpenChange={setFindReplaceOpen}
+            />
+          </LexicalExtensionComposer>
+        </div>
+      </MediaConfigProvider>
     </LocaleContext.Provider>
   );
 }
 
-export { INSERT_IMAGE_COMMAND };
+export { INSERT_AUDIO_COMMAND, INSERT_IMAGE_COMMAND, INSERT_VIDEO_COMMAND };
 
-export type { InsertImagePayload };
+export type {
+  InsertAudioPayload,
+  InsertImagePayload,
+  InsertVideoPayload,
+  MediaConfig,
+};
 
 export default Editor;

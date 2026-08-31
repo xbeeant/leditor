@@ -67,6 +67,9 @@ import {
   insertBlockWithParagraphAfter,
   insertParagraphAfter,
 } from '../commands';
+import { INSERT_MERMAID_COMMAND } from '../MermaidPlugin';
+import { INSERT_CALLOUT_COMMAND } from '../CalloutPlugin';
+import { INSERT_CODE_DRAWING_COMMAND } from '../CodeDrawingPlugin';
 import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
 import { type Locale, localeNames, t } from '../i18n';
 import { AlignGroup } from './AlignGroup';
@@ -735,6 +738,18 @@ export function Toolbar({
           break;
         case 'inlineEquation':
           insertEquation(true);
+          break;
+        case 'mermaid':
+          editor.dispatchCommand(
+            INSERT_MERMAID_COMMAND,
+            'flowchart TD\n  A[开始] --> B[结束]',
+          );
+          break;
+        case 'callout':
+          editor.dispatchCommand(INSERT_CALLOUT_COMMAND, { icon: 'note' });
+          break;
+        case 'codeDrawing':
+          editor.dispatchCommand(INSERT_CODE_DRAWING_COMMAND, undefined);
           break;
         default:
           break;

@@ -21,6 +21,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SLASH_ITEMS, SlashMenu, type SlashAction } from './SlashMenu';
 import { $createTable, insertBlockAfter } from './commands';
+import { INSERT_MERMAID_COMMAND } from './MermaidPlugin';
+import { INSERT_CODE_DRAWING_COMMAND } from './CodeDrawingPlugin';
 
 const MAX_QUERY_LENGTH = 30;
 
@@ -197,6 +199,15 @@ export function SlashCommandPlugin({
           break;
         case 'inlineEquation':
           oe(true);
+          break;
+        case 'mermaid':
+          editor.dispatchCommand(
+            INSERT_MERMAID_COMMAND,
+            'flowchart TD\n  A[开始] --> B[结束]',
+          );
+          break;
+        case 'codeDrawing':
+          editor.dispatchCommand(INSERT_CODE_DRAWING_COMMAND, undefined);
           break;
         default:
           break;

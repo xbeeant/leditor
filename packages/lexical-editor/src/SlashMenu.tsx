@@ -13,6 +13,8 @@ import {
   Quote,
   Sigma,
   Table as TableIcon,
+  Workflow,
+  Paintbrush,
 } from 'lucide-react';
 import type { JSX } from 'react';
 import { useEffect, useRef } from 'react';
@@ -31,7 +33,9 @@ export type SlashAction =
   | 'divider'
   | 'image'
   | 'equation'
-  | 'inlineEquation';
+  | 'inlineEquation'
+  | 'mermaid'
+  | 'codeDrawing';
 
 interface SlashItem {
   keyword: string[];
@@ -139,6 +143,20 @@ const SLASH_ITEMS: SlashItem[] = [
     description: '插入行内公式',
     icon: Sigma,
     action: 'inlineEquation',
+  },
+  {
+    keyword: ['mermaid', '图表'],
+    label: 'Mermaid 图表',
+    description: '插入 Mermaid 图表',
+    icon: Workflow,
+    action: 'mermaid',
+  },
+  {
+    keyword: ['drawing', '代码绘图', '图形'],
+    label: '代码绘图',
+    description: '插入代码绘图节点',
+    icon: Paintbrush,
+    action: 'codeDrawing',
   },
 ];
 

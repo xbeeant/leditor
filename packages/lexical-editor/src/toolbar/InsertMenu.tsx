@@ -6,6 +6,7 @@ import {
   Heading3,
   Heading4,
   Image as ImageIcon,
+  Info,
   List,
   ListChecks,
   ListOrdered,
@@ -15,6 +16,8 @@ import {
   Sigma,
   SquarePlus,
   Table as TableIcon,
+  Workflow,
+  Paintbrush,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { t, type Locale } from '../i18n';
@@ -69,6 +72,9 @@ function getSections(locale: Locale): InsertSection[] {
         { type: 'image', label: t(locale, 'insertImage'), icon: ImageIcon },
         { type: 'equation', label: t(locale, 'insertEquation'), icon: Sigma },
         { type: 'inlineEquation', label: t(locale, 'insertInlineEquation'), icon: Sigma },
+        { type: 'mermaid', label: t(locale, 'insertMermaid'), icon: Workflow },
+        { type: 'callout', label: t(locale, 'insertCallout'), icon: Info },
+        { type: 'codeDrawing', label: t(locale, 'insertCodeDrawing'), icon: Paintbrush },
       ],
     },
   ];

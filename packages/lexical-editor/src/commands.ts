@@ -20,6 +20,24 @@ export const INSERT_IMAGE_COMMAND = createCommand<InsertImagePayload>(
   'INSERT_IMAGE_COMMAND',
 );
 
+export interface InsertVideoPayload {
+  src: string;
+  width?: string;
+  height?: string;
+}
+
+export const INSERT_VIDEO_COMMAND = createCommand<InsertVideoPayload>(
+  'INSERT_VIDEO_COMMAND',
+);
+
+export interface InsertAudioPayload {
+  src: string;
+}
+
+export const INSERT_AUDIO_COMMAND = createCommand<InsertAudioPayload>(
+  'INSERT_AUDIO_COMMAND',
+);
+
 export interface InsertEquationPayload {
   equation: string;
   inline: boolean;

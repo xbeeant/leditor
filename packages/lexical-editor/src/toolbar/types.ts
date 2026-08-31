@@ -44,7 +44,10 @@ export type InsertBlockType =
   | 'divider'
   | 'image'
   | 'equation'
-  | 'inlineEquation';
+  | 'inlineEquation'
+  | 'mermaid'
+  | 'callout'
+  | 'codeDrawing';
 
 /** 独立列表插入按钮支持的格式 */
 export type ListFormatType =
