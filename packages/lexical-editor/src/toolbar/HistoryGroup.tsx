@@ -1,4 +1,5 @@
 import { Redo2, Undo2 } from 'lucide-react';
+import { memo } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
@@ -10,7 +11,7 @@ interface HistoryGroupProps {
   onRedo: () => void;
 }
 
-export function HistoryGroup({
+export const HistoryGroup = memo(function HistoryGroup({
   canUndo,
   canRedo,
   onUndo,
@@ -27,4 +28,4 @@ export function HistoryGroup({
       </ToolbarButton>
     </>
   );
-}
+});

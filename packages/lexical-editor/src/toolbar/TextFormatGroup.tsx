@@ -7,6 +7,7 @@ import {
   Superscript,
   Underline,
 } from 'lucide-react';
+import { memo } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
@@ -27,7 +28,10 @@ interface TextFormatGroupProps {
   onFormat: (format: TextFormat) => void;
 }
 
-export function TextFormatGroup({ formats, onFormat }: TextFormatGroupProps) {
+export const TextFormatGroup = memo(function TextFormatGroup({
+  formats,
+  onFormat,
+}: TextFormatGroupProps) {
   const locale = useLocale();
   return (
     <>
@@ -82,4 +86,4 @@ export function TextFormatGroup({ formats, onFormat }: TextFormatGroupProps) {
       </ToolbarButton>
     </>
   );
-}
+});

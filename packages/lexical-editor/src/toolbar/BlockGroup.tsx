@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { t, type Locale } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarPopup } from './ToolbarPopup';
@@ -118,7 +118,7 @@ interface BlockGroupProps {
   onBulletStyleChange?: (style: 'disc' | 'circle' | 'square') => void;
 }
 
-export function BlockGroup({
+export const BlockGroup = memo(function BlockGroup({
   blockType,
   onBlockTypeChange,
   codeLanguage,
@@ -236,7 +236,7 @@ export function BlockGroup({
       )}
     </>
   );
-}
+});
 
 function CodeLanguageDropdown({
   value,

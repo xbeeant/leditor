@@ -8,7 +8,7 @@ import {
   Indent,
   Outdent,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, memo } from 'react';
 import { t, type Locale } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
@@ -116,7 +116,7 @@ function AlignDropdown({
   );
 }
 
-export function AlignGroup({
+export const AlignGroup = memo(function AlignGroup({
   activeAlign,
   onAlign,
   onOutdent,
@@ -134,4 +134,4 @@ export function AlignGroup({
       </ToolbarButton>
     </>
   );
-}
+});

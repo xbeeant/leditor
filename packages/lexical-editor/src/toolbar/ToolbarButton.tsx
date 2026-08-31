@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 interface ToolbarButtonProps {
   title: string;
   onClick?: () => void;
+  onMouseDown?: (e: MouseEvent<HTMLButtonElement>) => void;
   active?: boolean;
   disabled?: boolean;
   children: ReactNode;
@@ -11,6 +12,7 @@ interface ToolbarButtonProps {
 export function ToolbarButton({
   title,
   onClick,
+  onMouseDown,
   active = false,
   disabled = false,
   children,
@@ -23,6 +25,7 @@ export function ToolbarButton({
       aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
+      onMouseDown={onMouseDown}
       className={[
         'inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-gray-700',
         'transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent',

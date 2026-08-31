@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarPopup } from './ToolbarPopup';
@@ -89,7 +89,7 @@ export interface ColorGroupProps {
 }
 
 /** 文字颜色 / 背景色（参考 ca/lexical/packages/lib 实现） */
-export function ColorGroup({
+export const ColorGroup = memo(function ColorGroup({
   fontColor,
   bgColor,
   onFontColorChange,
@@ -158,4 +158,4 @@ export function ColorGroup({
       )}
     </div>
   );
-}
+});

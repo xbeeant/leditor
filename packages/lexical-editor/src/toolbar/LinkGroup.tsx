@@ -1,5 +1,5 @@
 import { Link as LinkIcon, X } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
@@ -31,7 +31,7 @@ function isValidUrl(str: string): boolean {
   }
 }
 
-export function LinkGroup({
+export const LinkGroup = memo(function LinkGroup({
   active,
   open,
   url,
@@ -91,4 +91,4 @@ export function LinkGroup({
       )}
     </div>
   );
-}
+});

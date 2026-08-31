@@ -1,5 +1,5 @@
 import { Languages } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarButton } from './ToolbarButton';
@@ -9,7 +9,7 @@ interface RubyGroupProps {
   onInsert: (text: string, annotation: string) => void;
 }
 
-export function RubyGroup({ onInsert }: RubyGroupProps) {
+export const RubyGroup = memo(function RubyGroup({ onInsert }: RubyGroupProps) {
   const [open, setOpen] = useState(false);
   const [annotation, setAnnotation] = useState('');
   const ref = useRef<HTMLDivElement>(null);
@@ -64,4 +64,4 @@ export function RubyGroup({ onInsert }: RubyGroupProps) {
       )}
     </div>
   );
-}
+});

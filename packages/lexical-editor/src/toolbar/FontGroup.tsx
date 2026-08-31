@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
 import { ToolbarDropdown } from './ToolbarDropdown';
@@ -30,7 +31,7 @@ export interface FontGroupProps {
   onFontSizeChange: (size: string) => void;
 }
 
-export function FontGroup({
+export const FontGroup = memo(function FontGroup({
   fontFamily,
   onFontFamilyChange,
   fontSize,
@@ -62,4 +63,4 @@ export function FontGroup({
       />
     </>
   );
-}
+});
