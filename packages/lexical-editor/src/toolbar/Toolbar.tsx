@@ -73,6 +73,7 @@ import { AlignGroup } from './AlignGroup';
 import { BlockGroup } from './BlockGroup';
 import { ClearFormatGroup } from './ClearFormatGroup';
 import { ColorGroup } from './ColorGroup';
+import { FindReplaceButton } from './FindReplaceButton';
 import { FontGroup } from './FontGroup';
 import { FormatPainter } from './FormatPainter';
 import { HistoryGroup } from './HistoryGroup';
@@ -165,6 +166,7 @@ export function Toolbar({
   pinned,
   showComments,
   onToggleComments,
+  onToggleFindReplace,
   locale,
   onLocaleChange,
   readOnly,
@@ -175,6 +177,7 @@ export function Toolbar({
   pinned?: boolean;
   showComments?: boolean;
   onToggleComments?: () => void;
+  onToggleFindReplace?: () => void;
   locale: Locale;
   onLocaleChange: (locale: Locale) => void;
   readOnly: boolean;
@@ -939,6 +942,10 @@ export function Toolbar({
       <ToolbarDivider />
 
       <ClearFormatGroup onClear={clearFormatting} />
+
+      <ToolbarDivider />
+
+      <FindReplaceButton onToggle={() => onToggleFindReplace?.()} />
 
       {snapshot.inTable && (
         <>

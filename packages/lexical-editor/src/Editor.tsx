@@ -32,9 +32,11 @@ import { MarkdownShortcutExtension } from './MarkdownShortcutExtension';
 import { RubyNode } from './RubyNode';
 import { SlashCommandsHost } from './SlashCommandsHost';
 import { TableActionMenuPlugin } from './TableActionMenuPlugin';
+import TableCellResizerPlugin from './TableCellResizerPlugin';
 import { TableDragSelectFix } from './TableDragSelectFix';
 import { TableOfContents } from './TableOfContents';
 import { TablePlugin } from './TablePlugin';
+import { UploadImagesPlugin } from './UploadImagesPlugin';
 import { INSERT_IMAGE_COMMAND, type InsertImagePayload } from './commands';
 import { CommentExtension } from './comment/CommentExtension';
 import { CommentPanel } from './comment/CommentPanel';
@@ -47,6 +49,7 @@ import {
   type OnChangeCallback,
   OnChangeExtension,
 } from './extensions';
+import { FindReplaceDialog } from './find/FindReplaceDialog';
 import type { Locale } from './i18n';
 import { editorTheme } from './theme';
 import { Toolbar } from './toolbar/Toolbar';
@@ -97,6 +100,7 @@ export function Editor({
   onChangeRef.current = onChange;
   const [pinned, setPinned] = useState(false);
   const [showComments, setShowComments] = useState(true);
+  const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [locale, setLocale] = useState<Locale>(initialLocale);
   // 传入 readOnly prop 时为受控模式,以外部值为准;否则内部自管(非受控)。
   const [internalReadOnly, setInternalReadOnly] = useState(false);
@@ -180,6 +184,7 @@ export function Editor({
               pinned={pinned}
               showComments={showComments}
               onToggleComments={() => setShowComments((v) => !v)}
+              onToggleFindReplace={() => setFindReplaceOpen((v) => !v)}
               locale={locale}
               onLocaleChange={handleLocaleChange}
               readOnly={readOnly}
@@ -199,12 +204,18 @@ export function Editor({
           </div>
           <TablePlugin />
           <TableActionMenuPlugin />
+          <TableCellResizerPlugin />
           <FloatingTableActionsPlugin />
           <TableDragSelectFix />
           <CommentPlugin />
           <CodeBlockPlugin />
           <FloatingBlockActionsPlugin />
           <SlashCommandsHost />
+          <UploadImagesPlugin />
+          <FindReplaceDialog
+            open={findReplaceOpen}
+            onOpenChange={setFindReplaceOpen}
+          />
         </LexicalExtensionComposer>
       </div>
     </LocaleContext.Provider>
