@@ -12,9 +12,9 @@
 
 - [x] **3. CodeDrawingNode + CodeDrawingPlugin** - 代码转图表节点，支持 mermaid/plantuml 渲染（graphviz/flowchart 需额外依赖）
 - [ ] **3a. CodeDrawing 扩展** - graphviz / flowchart 渲染支持（需安装 viz.js / flowchart.js 依赖）
-- [ ] **4. ExcalidrawNode + ExcalidrawPlugin** - Excalidraw 白板绘制节点
-- [ ] **5. DrawioNode + DrawioPlugin** - Draw.io 图表节点
-- [ ] **6. MindNode + MindPlugin** - 思维导图节点
+- [ ] **4. ExcalidrawNode + ExcalidrawPlugin** - Excalidraw 白板绘制节点（跳过：依赖 ~2MB @excalidraw/excalidraw，需用户决策）
+- [ ] **5. DrawioNode + DrawioPlugin** - Draw.io 图表节点（跳过：依赖外部 iframe 嵌入服务）
+- [ ] **6. MindNode + MindPlugin** - 思维导图节点（跳过：依赖外部 iframe 嵌入服务）
 - [x] **7. CalloutNode** - 高亮提示块（warning/info/tip/success 等类型）
 - [x] **9. UniversalBlockEscapePlugin** - 在块级元素（表格单元格、代码块等）末尾按回车时跳出到新段落
 - [x] **12. PasteMediaPlugin** - 粘贴图片/视频/音频文件时自动上传
@@ -25,5 +25,5 @@
 
 - [x] **10. TableScrollShadowPlugin** - 宽表格水平滚动时显示左右阴影指示
 - [x] **11. ExcelTablePastePlugin** - 从 Excel 粘贴表格时保留背景色等格式
-- [ ] **15. DiffEditor** - 差异对比编辑器，并排显示两个版本的差异
-- [ ] **16. DOCX导出功能** - 将编辑器内容导出为 Word 文档
+- [x] **15. DiffEditor** - 差异对比编辑器，并排显示两个版本的差异
+- [x] **16. DOCX导出功能** - 将编辑器内容导出为 Word 文档

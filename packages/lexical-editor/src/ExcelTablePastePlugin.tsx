@@ -19,7 +19,7 @@ function preProcessExcelDOM(dom: Document): Document {
   const regex =
     /\.([a-zA-Z0-9_-]+)\s*\{[^}]*background(?:-color)?:\s*([^;!}]+)(?:!important)?[^}]*}/gi;
 
-  styleElements.forEach((styleEl) => {
+  for (const styleEl of styleElements) {
     const cssText = styleEl.textContent || '';
     for (const match of cssText.matchAll(regex)) {
       const className = match[1];
@@ -28,11 +28,11 @@ function preProcessExcelDOM(dom: Document): Document {
         classToBgColor[className] = bgColor;
       }
     }
-  });
+  }
 
   // 将匹配到的类名样式写为内联背景色
   const cells = dom.querySelectorAll('td, th');
-  cells.forEach((cell) => {
+  for (const cell of cells) {
     if (!(cell as HTMLElement).style.backgroundColor) {
       const classNames = (cell as HTMLElement).className
         .split(/\s+/)
@@ -44,7 +44,7 @@ function preProcessExcelDOM(dom: Document): Document {
         }
       }
     }
-  });
+  }
 
   return dom;
 }

@@ -1,18 +1,15 @@
-import { $wrapNodeInElement } from '@lexical/utils';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $wrapNodeInElement } from '@lexical/utils';
 import {
   $createParagraphNode,
   $insertNodes,
   $isRootOrShadowRoot,
   COMMAND_PRIORITY_EDITOR,
-  createCommand,
   type LexicalCommand,
+  createCommand,
 } from 'lexical';
 import { useEffect } from 'react';
-import {
-  $createCodeDrawingNode,
-  CodeDrawingNode,
-} from './CodeDrawingNode';
+import { $createCodeDrawingNode, CodeDrawingNode } from './CodeDrawingNode';
 
 export const INSERT_CODE_DRAWING_COMMAND: LexicalCommand<void> = createCommand(
   'INSERT_CODE_DRAWING_COMMAND',

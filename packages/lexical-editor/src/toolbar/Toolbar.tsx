@@ -38,6 +38,7 @@ import {
   FORMAT_ELEMENT_COMMAND,
   FORMAT_TEXT_COMMAND,
   INDENT_CONTENT_COMMAND,
+  type LexicalEditor,
   OUTDENT_CONTENT_COMMAND,
   REDO_COMMAND,
   UNDO_COMMAND,
@@ -45,6 +46,7 @@ import {
 import {
   Eye,
   EyeOff,
+  FileDown,
   Globe,
   List,
   MessageSquare,
@@ -70,6 +72,7 @@ import {
 import { INSERT_MERMAID_COMMAND } from '../MermaidPlugin';
 import { INSERT_CALLOUT_COMMAND } from '../CalloutPlugin';
 import { INSERT_CODE_DRAWING_COMMAND } from '../CodeDrawingPlugin';
+import { exportLexicalToDocx } from '../docx';
 import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
 import { type Locale, localeNames, t } from '../i18n';
 import { AlignGroup } from './AlignGroup';
@@ -879,6 +882,13 @@ export function Toolbar({
   );
   const handleLinkClose = useCallback(() => setLinkEditorOpen(false), []);
 
+  const onExportDocx = useCallback(
+    (ed: LexicalEditor) => {
+      void exportLexicalToDocx(ed, { title: 'document' });
+    },
+    [],
+  );
+
   return (
     <div
       ref={toolbarRef}
@@ -1023,6 +1033,17 @@ export function Toolbar({
         >
           <Globe size={14} />
           <span>{localeNames[locale]}</span>
+        </button>
+
+        <ToolbarDivider />
+
+        <button
+          type="button"
+          onClick={() => onExportDocx(editor)}
+          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+          title={t(locale, 'exportDocx')}
+        >
+          <FileDown size={14} />
         </button>
 
         <ToolbarDivider />

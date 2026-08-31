@@ -48,3 +48,16 @@ export type {
   CodeDrawingType,
   CodeDrawingMode,
 } from './CodeDrawingNode';
+
+// DOCX 导出功能
+export {
+  exportLexicalToDocx,
+  exportLexicalValueToDocx,
+  combineLexicalValues,
+  deepCleanControlChars,
+} from './docx';
+export type { ExportOptions } from './docx';
+
+// 差异对比编辑器
+export { DiffEditor } from './diff/DiffEditor';
+export { computeDiffState } from './diff/compute-diff-state';

@@ -1,9 +1,17 @@
-import { DecoratorNode, type EditorConfig, type LexicalEditor, type LexicalNode, type NodeKey, type SerializedLexicalNode, type Spread } from "lexical";
-import type { JSX } from "react";
-import { CodeDrawing } from "./ui/CodeDrawing";
+import {
+  DecoratorNode,
+  type EditorConfig,
+  type LexicalEditor,
+  type LexicalNode,
+  type NodeKey,
+  type SerializedLexicalNode,
+  type Spread,
+} from 'lexical';
+import type { JSX } from 'react';
+import { CodeDrawing } from './ui/CodeDrawing';
 
-export type CodeDrawingType = "mermaid" | "plantuml" | "graphviz" | "flowchart";
-export type CodeDrawingMode = "both" | "code" | "img";
+export type CodeDrawingType = 'mermaid' | 'plantuml' | 'graphviz' | 'flowchart';
+export type CodeDrawingMode = 'both' | 'code' | 'img';
 
 export type SerializedCodeDrawingNode = Spread<
   {
@@ -20,7 +28,7 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
   __drawingMode: CodeDrawingMode;
 
   static override getType(): string {
-    return "code-drawing";
+    return 'code-drawing';
   }
 
   static override clone(node: CodeDrawingNode): CodeDrawingNode {
@@ -37,8 +45,8 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
   ): CodeDrawingNode {
     const node = new CodeDrawingNode(
       serializedNode.data,
-      serializedNode.drawingType ?? "mermaid",
-      serializedNode.drawingMode ?? "both",
+      serializedNode.drawingType ?? 'mermaid',
+      serializedNode.drawingMode ?? 'both',
     );
     return node.updateFromJSON(serializedNode);
   }
@@ -53,9 +61,9 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
   }
 
   constructor(
-    data = "",
-    drawingType: CodeDrawingType = "mermaid",
-    drawingMode: CodeDrawingMode = "both",
+    data = '',
+    drawingType: CodeDrawingType = 'mermaid',
+    drawingMode: CodeDrawingMode = 'both',
     key?: NodeKey,
   ) {
     super(key);
@@ -65,7 +73,7 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
   }
 
   override createDOM(_config: EditorConfig): HTMLElement {
-    const span = document.createElement("span");
+    const span = document.createElement('span');
     return span;
   }
 
@@ -74,18 +82,18 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
   }
 
   override exportDOM(editor: LexicalEditor): { element: HTMLElement } {
-    const element = document.createElement("span");
-    element.style.display = "inline-block";
+    const element = document.createElement('span');
+    element.style.display = 'inline-block';
 
     const content = editor.getElementByKey(this.getKey());
     if (content !== null) {
-      const svg = content.querySelector("svg");
+      const svg = content.querySelector('svg');
       if (svg !== null) {
         element.innerHTML = svg.outerHTML;
       }
     }
 
-    element.setAttribute("data-lexical-code-drawing-json", this.__data);
+    element.setAttribute('data-lexical-code-drawing-json', this.__data);
     return { element };
   }
 
@@ -112,7 +120,10 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
     self.__drawingMode = drawingMode;
   }
 
-  override decorate(_editor: LexicalEditor, _config: EditorConfig): JSX.Element {
+  override decorate(
+    _editor: LexicalEditor,
+    _config: EditorConfig,
+  ): JSX.Element {
     return (
       <CodeDrawing
         nodeKey={this.getKey()}
@@ -133,9 +144,9 @@ export class CodeDrawingNode extends DecoratorNode<JSX.Element> {
 }
 
 export function $createCodeDrawingNode(
-  data = "",
-  drawingType: CodeDrawingType = "mermaid",
-  drawingMode: CodeDrawingMode = "both",
+  data = '',
+  drawingType: CodeDrawingType = 'mermaid',
+  drawingMode: CodeDrawingMode = 'both',
 ): CodeDrawingNode {
   return new CodeDrawingNode(data, drawingType, drawingMode);
 }
@@ -145,5 +156,5 @@ export function $isCodeDrawingNode(
 ): node is CodeDrawingNode {
   if (!node) return false;
   if (node instanceof CodeDrawingNode) return true;
-  return node.getType() === "code-drawing";
+  return node.getType() === 'code-drawing';
 }

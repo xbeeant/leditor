@@ -1,15 +1,15 @@
-import { WidthType } from "docx";
+import { WidthType } from 'docx';
 
 const NAMED_COLORS: Record<string, string> = {
-  red: "FF0000",
-  yellow: "FFFF00",
-  blue: "0000FF",
-  green: "008000",
-  black: "000000",
-  white: "FFFFFF",
-  gray: "808080",
-  purple: "800080",
-  orange: "FFA500",
+  red: 'FF0000',
+  yellow: 'FFFF00',
+  blue: '0000FF',
+  green: '008000',
+  black: '000000',
+  white: 'FFFFFF',
+  gray: '808080',
+  purple: '800080',
+  orange: 'FFA500',
 };
 
 /**
@@ -21,22 +21,22 @@ export function normalizeDocxColor(colorStr?: string): string | undefined {
 
   if (NAMED_COLORS[str]) return NAMED_COLORS[str];
 
-  if (str.startsWith("#")) {
-    let hex = str.replace("#", "");
+  if (str.startsWith('#')) {
+    let hex = str.replace('#', '');
     if (hex.length === 3) {
       hex = hex
-        .split("")
+        .split('')
         .map((c) => c + c)
-        .join("");
+        .join('');
     }
     return hex.toUpperCase();
   }
 
   const rgbMatch = str.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
   if (rgbMatch) {
-    const r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, "0");
-    const g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, "0");
-    const b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, "0");
+    const r = Number.parseInt(rgbMatch[1], 10).toString(16).padStart(2, '0');
+    const g = Number.parseInt(rgbMatch[2], 10).toString(16).padStart(2, '0');
+    const b = Number.parseInt(rgbMatch[3], 10).toString(16).padStart(2, '0');
     return (r + g + b).toUpperCase();
   }
 
@@ -49,13 +49,13 @@ export function normalizeDocxColor(colorStr?: string): string | undefined {
 export function normalizeDocxWidth(widthVal?: number | string) {
   if (widthVal === undefined || widthVal === null) return undefined;
 
-  if (typeof widthVal === "string" && widthVal.endsWith("%")) {
-    const percent = parseFloat(widthVal.replace("%", ""));
+  if (typeof widthVal === 'string' && widthVal.endsWith('%')) {
+    const percent = Number.parseFloat(widthVal.replace('%', ''));
     return { size: percent, type: WidthType.PERCENTAGE };
   }
 
   const pixelWidth =
-    typeof widthVal === "string" ? parseFloat(widthVal) : widthVal;
+    typeof widthVal === 'string' ? Number.parseFloat(widthVal) : widthVal;
   if (!Number.isNaN(pixelWidth)) {
     // Word 中 1px 大约等于 15 DXA (Twips)
     return { size: Math.round(pixelWidth * 15), type: WidthType.DXA };
@@ -68,20 +68,20 @@ export function normalizeDocxWidth(widthVal?: number | string) {
  * 微型内联 CSS 解析器：将 "color: red; font-size: 14px;" 转为对象映射。
  */
 export function parseInlineStyle(styleStr?: string): Record<string, string> {
-  if (!styleStr || typeof styleStr !== "string") return {};
+  if (!styleStr || typeof styleStr !== 'string') return {};
 
   const result: Record<string, string> = {};
-  styleStr.split(";").forEach((rule) => {
-    if (!rule.trim()) return;
-    const separatorIndex = rule.indexOf(":");
+  for (const rule of styleStr.split(';')) {
+    if (!rule.trim()) continue;
+    const separatorIndex = rule.indexOf(':');
     if (separatorIndex !== -1) {
       const key = rule.slice(0, separatorIndex).trim().toLowerCase();
       const value = rule.slice(separatorIndex + 1).trim();
       if (key && value) {
-        result[key] = value.replace(/['"]/g, "");
+        result[key] = value.replace(/['"]/g, '');
       }
     }
-  });
+  }
   return result;
 }
 
@@ -104,11 +104,13 @@ export function convertToRoman(num: number): string {
     IV: 4,
     I: 1,
   };
-  let roman = "";
+  let roman = '';
+  let remainder = num;
   for (const i in lookup) {
-    while (num >= (lookup as Record<string, number>)[i]) {
+    const val = (lookup as Record<string, number>)[i];
+    while (remainder >= val) {
       roman += i;
-      num -= (lookup as Record<string, number>)[i];
+      remainder -= val;
     }
   }
   return roman;
@@ -117,21 +119,18 @@ export function convertToRoman(num: number): string {
 /**
  * 根据 CSS list-style-type 格式化列表序号。
  */
-export function formatListNumber(
-  value: number,
-  styleType: string = "decimal",
-): string {
+export function formatListNumber(value: number, styleType = 'decimal'): string {
   const type = styleType.toLowerCase();
 
-  if (type === "lower-alpha" || type === "lower-latin") {
+  if (type === 'lower-alpha' || type === 'lower-latin') {
     return String.fromCharCode(96 + (((value - 1) % 26) + 1));
   }
-  if (type === "upper-alpha" || type === "upper-latin") {
+  if (type === 'upper-alpha' || type === 'upper-latin') {
     return String.fromCharCode(64 + (((value - 1) % 26) + 1));
   }
-  if (type === "lower-roman" || type === "upper-roman") {
+  if (type === 'lower-roman' || type === 'upper-roman') {
     const roman = convertToRoman(value);
-    return type === "lower-roman" ? roman.toLowerCase() : roman;
+    return type === 'lower-roman' ? roman.toLowerCase() : roman;
   }
   return value.toString();
 }
@@ -139,9 +138,9 @@ export function formatListNumber(
 const BASE64_HEADER_REGEX = /^data:(image|application)\/[a-z-+]+;base64,/i;
 
 export const isBase64 = (src: string): boolean => {
-  if (!src || typeof src !== "string") return false;
+  if (!src || typeof src !== 'string') return false;
   if (!BASE64_HEADER_REGEX.test(src)) return false;
-  const dataPart = src.split(",")[1];
+  const dataPart = src.split(',')[1];
   return dataPart ? dataPart.length % 4 === 0 : false;
 };
 
@@ -151,8 +150,8 @@ export const isBase64 = (src: string): boolean => {
 export const fetchImageAsUint8Array = async (
   url: string,
 ): Promise<Uint8Array> => {
-  if (url.startsWith("data:image/")) {
-    const base64Data = url.split(",")[1];
+  if (url.startsWith('data:image/')) {
+    const base64Data = url.split(',')[1];
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -176,7 +175,7 @@ export function getImageDimensionsFromBuffer(
   buffer: Uint8Array,
 ): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
-    const blob = new Blob([buffer]);
+    const blob = new Blob([buffer as unknown as BlobPart]);
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
@@ -184,7 +183,7 @@ export function getImageDimensionsFromBuffer(
       URL.revokeObjectURL(url);
     };
     img.onerror = () => {
-      reject(new Error("无法读取图片自然尺寸"));
+      reject(new Error('无法读取图片自然尺寸'));
       URL.revokeObjectURL(url);
     };
     img.src = url;
@@ -195,19 +194,19 @@ export function getImageDimensionsFromBuffer(
  * 将 SVG / 图片 URL 转为 PNG dataURL（docx 仅支持位图）。
  */
 export const convertToPng = async (src: string): Promise<string> => {
-  if (isBase64(src) && src.startsWith("data:image/png")) {
+  if (isBase64(src) && src.startsWith('data:image/png')) {
     return src;
   }
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
-      const canvas = document.createElement("canvas");
+      const canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       ctx?.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/png"));
+      resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = (err) => reject(err);
     img.src = src;
