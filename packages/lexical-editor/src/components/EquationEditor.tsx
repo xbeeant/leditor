@@ -7,7 +7,7 @@ import {
   type RefObject,
   forwardRef,
 } from 'react';
-import './equation.css';
+import '../equation.css';
 
 interface BaseEquationEditorProps {
   equation: string;

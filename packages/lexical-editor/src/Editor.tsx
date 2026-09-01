@@ -23,37 +23,7 @@ import {
   defineExtension,
 } from 'lexical';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { EXCLUDE_PARENTS, MATCHERS } from './plugins/AutoLinkPlugin';
-import { FloatingBlockActionsPlugin } from './ui/BlockActions';
-import { CalloutNode } from './nodes/CalloutNode';
-import { CalloutPlugin } from './plugins/CalloutPlugin';
-import { CodeBlockPlugin } from './plugins/CodeBlockPlugin';
-import { CodeDrawingNode } from './nodes/CodeDrawingNode';
-import { CodeDrawingPlugin } from './plugins/CodeDrawingPlugin';
-import { CodeHighlightExtension } from './plugins/CodeHighlightPlugin';
-import { CodePastePlugin } from './plugins/CodePastePlugin';
-import { EquationNode } from './nodes/EquationNode';
-import { ExcelTablePastePlugin } from './plugins/ExcelTablePastePlugin';
-import { FileNode } from './nodes/FileNode';
-import { FloatingTableActionsPlugin } from './ui/FloatingTableActions';
-import { FloatingToolbar } from './ui/FloatingToolbar';
-import { ImageNode } from './nodes/ImageNode';
-import { ListStyleNode } from './nodes/ListStyleNode';
 import { LocaleContext } from './LocaleContext';
-import { MarkdownShortcutExtension } from './plugins/MarkdownShortcutExtension';
-import { MermaidNode } from './nodes/MermaidNode';
-import { MermaidPlugin } from './plugins/MermaidPlugin';
-import { PasteMediaPlugin } from './plugins/PasteMediaPlugin';
-import { RubyNode } from './nodes/RubyNode';
-import { SlashCommandsHost } from './ui/SlashCommandsHost';
-import { TableActionMenuPlugin } from './plugins/TableActionMenuPlugin';
-import TableCellResizerPlugin from './plugins/TableCellResizerPlugin';
-import { TableDragSelectFix } from './plugins/TableDragSelectFix';
-import { TableOfContents } from './ui/TableOfContents';
-import { TablePlugin } from './plugins/TablePlugin';
-import { TableScrollShadowPlugin } from './plugins/TableScrollShadowPlugin';
-import { UniversalBlockEscapePlugin } from './plugins/UniversalBlockEscapePlugin';
-import { UploadImagesPlugin } from './plugins/UploadImagesPlugin';
 import {
   INSERT_AUDIO_COMMAND,
   INSERT_IMAGE_COMMAND,
@@ -62,14 +32,10 @@ import {
   type InsertImagePayload,
   type InsertVideoPayload,
 } from './commands';
+import { CommentPlugin } from './comment';
 import { CommentPanel } from './comment/CommentPanel';
-import { CommentPlugin } from './comment/CommentPlugin';
-import { DrawioNode } from './nodes/DrawioNode';
-import { DrawioPlugin } from './plugins/DrawioPlugin';
-import { EmbedConfigProvider } from './embed/EmbedConfigContext';
-import { MindNode } from './nodes/MindNode';
-import { MindPlugin } from './plugins/MindPlugin';
-import type { EmbedConfig } from './embed/config';
+import { EmbedConfigProvider } from './embed';
+import type { EmbedConfig } from './embed';
 import {
   HorizontalRuleExtension,
   InitialValueExtension,
@@ -81,14 +47,48 @@ import {
   type OnChangeCallback,
   OnChangeExtension,
 } from './extensions';
-import { FindReplaceDialog } from './find/FindReplaceDialog';
+import { FindReplaceDialog } from './find';
 import type { Locale } from './i18n';
-import { AudioNode } from './nodes/AudioNode';
-import { MediaConfigProvider } from './media/MediaConfigContext';
-import { VideoNode } from './nodes/VideoNode';
-import type { MediaConfig } from './media/config';
+import { MediaConfigProvider } from './media';
+import type { MediaConfig } from './media';
+import { AudioNode } from './nodes';
+import { CalloutNode } from './nodes';
+import { CodeDrawingNode } from './nodes';
+import { DrawioNode } from './nodes';
+import { EquationNode } from './nodes';
+import { FileNode } from './nodes';
+import { ImageNode } from './nodes';
+import { ListStyleNode } from './nodes';
+import { MermaidNode } from './nodes';
+import { MindNode } from './nodes';
+import { RubyNode } from './nodes';
+import { VideoNode } from './nodes';
+import { EXCLUDE_PARENTS, MATCHERS } from './plugins';
+import { CalloutExtension } from './plugins';
+import { CodeBlockExtension } from './plugins';
+import { CodeDrawingExtension } from './plugins';
+import { CodeHighlightExtension } from './plugins';
+import { CodePasteExtension } from './plugins';
+import { DrawioExtension } from './plugins';
+import { ExcelTablePasteExtension } from './plugins';
+import { MermaidExtension } from './plugins';
+import { MindExtension } from './plugins';
+import { PasteMediaExtension } from './plugins';
+import { TableActionMenuExtension } from './plugins';
+import { TableCellResizerExtension } from './plugins';
+import { TableDragSelectFixExtension } from './plugins';
+import { TableInsertExtension } from './plugins';
+import { TableScrollShadowExtension } from './plugins';
+import { UniversalBlockEscapeExtension } from './plugins';
+import { UploadImagesExtension } from './plugins';
+import { MarkdownShortcutExtension } from './plugins/MarkdownShortcutExtension';
 import { editorTheme } from './theme';
 import { Toolbar } from './toolbar/Toolbar';
+import { FloatingBlockActionsPlugin } from './ui';
+import { FloatingTableActionsPlugin } from './ui';
+import { FloatingToolbar } from './ui';
+import { SlashCommandsHost } from './ui';
+import { TableOfContents } from './ui';
 
 export interface EditorProps {
   initialValue?: string;
@@ -233,6 +233,22 @@ export function Editor({
           InsertEquationExtension,
           InsertFileExtension,
           CodeHighlightExtension,
+          CodePasteExtension,
+          ExcelTablePasteExtension,
+          UniversalBlockEscapeExtension,
+          TableScrollShadowExtension,
+          TableDragSelectFixExtension,
+          CalloutExtension,
+          MermaidExtension,
+          CodeDrawingExtension,
+          TableInsertExtension,
+          CodeBlockExtension,
+          DrawioExtension,
+          MindExtension,
+          UploadImagesExtension,
+          PasteMediaExtension,
+          TableActionMenuExtension,
+          TableCellResizerExtension,
         ],
       }),
     [initialValue],
@@ -273,29 +289,13 @@ export function Editor({
                 {/* showComments 控制面板是否挂载;无评论时 CommentPanel 内部返回 null */}
                 {showComments && <CommentPanel />}
               </div>
-              <TablePlugin />
-              <TableActionMenuPlugin />
-              <TableCellResizerPlugin />
-              <TableScrollShadowPlugin />
               <FloatingTableActionsPlugin />
-              <TableDragSelectFix />
               <CommentPlugin />
-              <CodeBlockPlugin />
               <FloatingBlockActionsPlugin />
               <SlashCommandsHost />
-              <CodePastePlugin />
-              <MermaidPlugin />
-              <CalloutPlugin />
-              <CodeDrawingPlugin />
-              <DrawioPlugin />
-              <MindPlugin />
-              <UploadImagesPlugin />
-              <PasteMediaPlugin />
-              <ExcelTablePastePlugin />
               {floatingAnchor && (
                 <FloatingToolbar anchorElem={floatingAnchor} />
               )}
-              <UniversalBlockEscapePlugin />
               <FindReplaceDialog
                 open={findReplaceOpen}
                 onOpenChange={setFindReplaceOpen}

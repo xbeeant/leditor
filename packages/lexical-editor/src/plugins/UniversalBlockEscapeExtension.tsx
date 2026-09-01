@@ -1,4 +1,3 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $createParagraphNode,
   $getSelection,
@@ -10,8 +9,8 @@ import {
   KEY_DOWN_COMMAND,
   type LexicalNode,
   type PointType,
+  defineExtension,
 } from 'lexical';
-import { useEffect } from 'react';
 
 // 判断光标是否在指定 boundaryNode (边界节点) 的绝对末尾
 function isAtAbsoluteEndOfBlock(
@@ -40,14 +39,13 @@ function isAtAbsoluteEndOfBlock(
 }
 
 /**
- * 通用块级逃逸插件：在表格单元格、代码块、引用等块级元素的最末尾
+ * 通用块级逃逸扩展：在表格单元格、代码块、引用等块级元素的最末尾
  * 按下方向键（↓）时，自动在块之后插入新段落并移动光标到其中，
- * 让用户能自然地从不可聚焦的块中“跳出”继续输入。
+ * 让用户能自然地从不可聚焦的块中"跳出"继续输入。
  */
-export function UniversalBlockEscapePlugin(): null {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
+export const UniversalBlockEscapeExtension = defineExtension({
+  name: '@leditor/block-escape',
+  register(editor) {
     return editor.registerCommand(
       KEY_DOWN_COMMAND,
       (event: KeyboardEvent) => {
@@ -93,7 +91,7 @@ export function UniversalBlockEscapePlugin(): null {
           event.preventDefault();
           editor.update(() => {
             const newParagraph = $createParagraphNode();
-            tableNode!.insertAfter(newParagraph);
+            tableNode?.insertAfter(newParagraph);
             newParagraph.select();
           });
           return true;
@@ -107,7 +105,7 @@ export function UniversalBlockEscapePlugin(): null {
         event.preventDefault();
         editor.update(() => {
           const newParagraph = $createParagraphNode();
-          trueTopLevelBlock!.insertAfter(newParagraph);
+          trueTopLevelBlock?.insertAfter(newParagraph);
           newParagraph.select();
         });
 
@@ -115,7 +113,5 @@ export function UniversalBlockEscapePlugin(): null {
       },
       COMMAND_PRIORITY_HIGH,
     );
-  }, [editor]);
-
-  return null;
-}
+  },
+});

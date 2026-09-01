@@ -62,8 +62,7 @@ export const editorTheme = {
   equation: 'editor-equation',
   link: 'text-blue-600 underline cursor-pointer',
   table: 'border-collapse w-full my-2 table-fixed',
-  tableScrollableWrapper:
-    'overflow-auto lexical-table-scrollable-wrapper',
+  tableScrollableWrapper: 'overflow-auto lexical-table-scrollable-wrapper',
   tableRow: 'border border-gray-300',
   tableCell: 'border border-gray-300 p-1 align-top',
   tableCellHeader: 'border border-gray-300 p-1 bg-gray-100 font-semibold',

@@ -245,6 +245,7 @@ export function CodeDrawing({
           ref={containerRef}
           onDoubleClick={handlePreviewDoubleClick}
           className="[&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: 代码绘图导出的 SVG 为可信内容
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (

@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarDropdown } from './ToolbarDropdown';
 import { FONT_FAMILIES, FONT_SIZES, MIXED_FONT_SIZE } from './constants';
 

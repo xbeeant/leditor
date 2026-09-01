@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
 import {
   $computeTableMapSkipCellCheck,
@@ -12,6 +13,8 @@ import { calculateZoomLevel } from '@lexical/utils';
 import {
   $getNearestNodeFromDOMNode,
   type LexicalEditor,
+  configExtension,
+  defineExtension,
   isHTMLElement,
 } from 'lexical';
 import {
@@ -244,7 +247,7 @@ function TableCellResizer({ editor }: { editor: LexicalEditor }) {
   );
 }
 
-export default function TableCellResizerPlugin(): null | ReactPortal {
+function TableCellResizerPluginInner(): null | ReactPortal {
   const [editor] = useLexicalComposerContext();
   const isEditable = useLexicalEditable();
 
@@ -256,3 +259,13 @@ export default function TableCellResizerPlugin(): null | ReactPortal {
     [editor, isEditable],
   );
 }
+
+/** 表格列宽拖拽扩展：hover 单元格右缘时显示拖拽手柄，拖动修改列宽。 */
+export const TableCellResizerExtension = defineExtension({
+  name: '@leditor/table-cell-resizer',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<TableCellResizerPluginInner key="table-cell-resizer" />],
+    }),
+  ],
+});

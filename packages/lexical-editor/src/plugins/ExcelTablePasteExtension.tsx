@@ -1,5 +1,4 @@
 import { $generateNodesFromDOM } from '@lexical/html';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $createParagraphNode,
   $getRoot,
@@ -8,8 +7,8 @@ import {
   COMMAND_PRIORITY_CRITICAL,
   PASTE_COMMAND,
   type PasteCommandType,
+  defineExtension,
 } from 'lexical';
-import { useEffect } from 'react';
 
 // 从 Excel 的内联样式表提取类名到背景色的映射
 function preProcessExcelDOM(dom: Document): Document {
@@ -50,13 +49,12 @@ function preProcessExcelDOM(dom: Document): Document {
 }
 
 /**
- * Excel 表格粘贴插件：拦截从 Excel 复制的表格数据，
+ * Excel 表格粘贴扩展：拦截从 Excel 复制的表格数据，
  * 解析其 HTML 结构与背景色，生成为 Lexical 表格节点插入。
  */
-export function ExcelTablePastePlugin(): null {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
+export const ExcelTablePasteExtension = defineExtension({
+  name: '@leditor/excel-table-paste',
+  register(editor) {
     return editor.registerCommand(
       PASTE_COMMAND,
       (event: PasteCommandType) => {
@@ -113,7 +111,5 @@ export function ExcelTablePastePlugin(): null {
       },
       COMMAND_PRIORITY_CRITICAL,
     );
-  }, [editor]);
-
-  return null;
-}
+  },
+});

@@ -135,10 +135,14 @@ export function ImageModal({
           )}
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-sm text-gray-700">
+              <label
+                htmlFor="image-modal-url"
+                className="mb-1 block text-sm text-gray-700"
+              >
                 {t(locale, 'imageUrl')} <span className="text-red-500">*</span>
               </label>
               <input
+                id="image-modal-url"
                 ref={inputRef}
                 type="url"
                 value={src}
@@ -148,10 +152,14 @@ export function ImageModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-gray-700">
+              <label
+                htmlFor="image-modal-alt"
+                className="mb-1 block text-sm text-gray-700"
+              >
                 {t(locale, 'altText')}
               </label>
               <input
+                id="image-modal-alt"
                 type="text"
                 value={altText}
                 onChange={(e) => setAltText(e.target.value)}

@@ -30,7 +30,5 @@ export function KatexRenderer({
     }
   }, [equation, inline]);
 
-  return (
-    <span onDoubleClick={onDoubleClick} ref={katexElementRef} />
-  );
+  return <span onDoubleClick={onDoubleClick} ref={katexElementRef} />;
 }

@@ -1,18 +1,23 @@
 export { MATCHERS, EXCLUDE_PARENTS } from './AutoLinkPlugin';
-export { CodeBlockPlugin } from './CodeBlockPlugin';
-export { CodeDrawingPlugin, INSERT_CODE_DRAWING_COMMAND } from './CodeDrawingPlugin';
-export { CodeHighlightExtension } from './CodeHighlightPlugin';
-export { CodePastePlugin } from './CodePastePlugin';
-export { CalloutPlugin, INSERT_CALLOUT_COMMAND } from './CalloutPlugin';
-export type { InsertCalloutPayload } from './CalloutPlugin';
-export { ExcelTablePastePlugin } from './ExcelTablePastePlugin';
-export { MermaidPlugin, INSERT_MERMAID_COMMAND } from './MermaidPlugin';
-export { PasteMediaPlugin } from './PasteMediaPlugin';
+export { CodeBlockExtension } from './CodeBlockExtension';
+export {
+  CodeDrawingExtension,
+  INSERT_CODE_DRAWING_COMMAND,
+} from './CodeDrawingExtension';
+export { CodeHighlightExtension } from './CodeHighlightExtension';
+export { CodePasteExtension } from './CodePasteExtension';
+export { CalloutExtension, INSERT_CALLOUT_COMMAND } from './CalloutExtension';
+export type { InsertCalloutPayload } from './CalloutExtension';
+export { ExcelTablePasteExtension } from './ExcelTablePasteExtension';
+export { MermaidExtension, INSERT_MERMAID_COMMAND } from './MermaidExtension';
+export { PasteMediaExtension } from './PasteMediaExtension';
 export { SlashCommandPlugin } from './SlashCommandPlugin';
-export { TablePlugin } from './TablePlugin';
-export { TableActionMenuPlugin } from './TableActionMenuPlugin';
-export { TableScrollShadowPlugin } from './TableScrollShadowPlugin';
-export { default as TableCellResizerPlugin } from './TableCellResizerPlugin';
-export { TableDragSelectFix } from './TableDragSelectFix';
-export { UniversalBlockEscapePlugin } from './UniversalBlockEscapePlugin';
-export { UploadImagesPlugin } from './UploadImagesPlugin';
+export { TableInsertExtension } from './TableInsertExtension';
+export { TableActionMenuExtension } from './TableActionMenuExtension';
+export { TableScrollShadowExtension } from './TableScrollShadowExtension';
+export { TableCellResizerExtension } from './TableCellResizerExtension';
+export { TableDragSelectFixExtension } from './TableDragSelectFixExtension';
+export { UniversalBlockEscapeExtension } from './UniversalBlockEscapeExtension';
+export { UploadImagesExtension } from './UploadImagesExtension';
+export { DrawioExtension, INSERT_DRAWIO_COMMAND } from './DrawioExtension';
+export { MindExtension, INSERT_MIND_COMMAND } from './MindExtension';

@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import { $wrapNodeInElement } from '@lexical/utils';
 import {
   $createParagraphNode,
@@ -6,7 +7,9 @@ import {
   $isRootOrShadowRoot,
   COMMAND_PRIORITY_EDITOR,
   type LexicalCommand,
+  configExtension,
   createCommand,
+  defineExtension,
 } from 'lexical';
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
@@ -21,7 +24,7 @@ export const INSERT_MIND_COMMAND: LexicalCommand<MindElements | undefined> =
  * 思维导图插件：注册插入命令，打开 MindModal 让用户绘制，
  * 保存后将 MindNode 插入到当前选区位置。
  */
-export function MindPlugin(): JSX.Element | null {
+function MindPluginInner(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [initialValue, setInitialValue] = useState<MindElements | undefined>(
@@ -63,3 +66,13 @@ export function MindPlugin(): JSX.Element | null {
     />
   ) : null;
 }
+
+/** 思维导图扩展：注册插入命令，打开 MindModal 让用户绘制思维导图。 */
+export const MindExtension = defineExtension({
+  name: '@leditor/mind',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<MindPluginInner key="mind" />],
+    }),
+  ],
+});

@@ -1,6 +1,6 @@
-import type { CodeDrawingType } from '../nodes/CodeDrawingNode';
 import type { Locale } from '../i18n';
 import { t } from '../i18n';
+import type { CodeDrawingType } from '../nodes/CodeDrawingNode';
 
 let mermaidInitialized = false;
 

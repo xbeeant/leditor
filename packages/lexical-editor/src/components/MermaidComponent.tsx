@@ -164,7 +164,11 @@ export function MermaidComponent({
           ⚠ {error}
         </div>
       ) : svg ? (
-        <div ref={containerRef} dangerouslySetInnerHTML={{ __html: svg }} />
+        <div
+          ref={containerRef}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: mermaid 生成的 SVG 为可信内容
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
       ) : (
         <div className="flex min-h-full items-center justify-center text-center text-xs text-gray-400">
           {localCode.trim()

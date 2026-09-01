@@ -10,12 +10,7 @@ import {
   ElementNode,
 } from 'lexical';
 
-export type CalloutIcon =
-  | 'info'
-  | 'warning'
-  | 'danger'
-  | 'success'
-  | 'note';
+export type CalloutIcon = 'info' | 'warning' | 'danger' | 'success' | 'note';
 
 export type SerializedCalloutNode = Spread<
   {
@@ -25,34 +20,32 @@ export type SerializedCalloutNode = Spread<
 >;
 
 // 不同提示类型的样式映射（Tailwind）
-const CALLOUT_STYLES: Record<CalloutIcon, { container: string; badge: string; label: string }> = {
+const CALLOUT_STYLES: Record<
+  CalloutIcon,
+  { container: string; badge: string; label: string }
+> = {
   info: {
-    container:
-      'border-blue-300 bg-blue-50 text-blue-900',
+    container: 'border-blue-300 bg-blue-50 text-blue-900',
     badge: 'bg-blue-100 text-blue-700',
     label: '提示',
   },
   warning: {
-    container:
-      'border-amber-300 bg-amber-50 text-amber-900',
+    container: 'border-amber-300 bg-amber-50 text-amber-900',
     badge: 'bg-amber-100 text-amber-700',
     label: '警告',
   },
   danger: {
-    container:
-      'border-red-300 bg-red-50 text-red-900',
+    container: 'border-red-300 bg-red-50 text-red-900',
     badge: 'bg-red-100 text-red-700',
     label: '危险',
   },
   success: {
-    container:
-      'border-emerald-300 bg-emerald-50 text-emerald-900',
+    container: 'border-emerald-300 bg-emerald-50 text-emerald-900',
     badge: 'bg-emerald-100 text-emerald-700',
     label: '成功',
   },
   note: {
-    container:
-      'border-gray-300 bg-gray-50 text-gray-800',
+    container: 'border-gray-300 bg-gray-50 text-gray-800',
     badge: 'bg-gray-100 text-gray-600',
     label: '备注',
   },
@@ -118,7 +111,7 @@ export class CalloutNode extends ElementNode {
   override collapseAtStart(): true {
     const paragraph = $createParagraphNode();
     const children = this.getChildren();
-    children.forEach((child) => paragraph.append(child));
+    for (const child of children) paragraph.append(child);
     this.replace(paragraph);
     return true;
   }
@@ -149,8 +142,6 @@ export function $createCalloutNode(icon: CalloutIcon = 'note'): CalloutNode {
   return new CalloutNode(icon);
 }
 
-export function isCalloutNode(
-  node: unknown,
-): node is CalloutNode {
+export function isCalloutNode(node: unknown): node is CalloutNode {
   return node instanceof CalloutNode;
 }

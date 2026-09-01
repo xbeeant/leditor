@@ -1,9 +1,6 @@
 import 'katex/dist/katex.min.css';
 import Editor from './Editor';
-import {
-  TOGGLE_COMMENT_INPUT_COMMAND,
-  mockCommentsApi,
-} from './comment';
+import { TOGGLE_COMMENT_INPUT_COMMAND, mockCommentsApi } from './comment';
 import type { Comment, CommentAnchor } from './comment';
 import { CommentPanel } from './comment/CommentPanel';
 
@@ -25,16 +22,16 @@ export type { Comment, CommentAnchor };
 export { MermaidNode } from './nodes/MermaidNode';
 export {
   INSERT_MERMAID_COMMAND,
-  MermaidPlugin,
-} from './plugins/MermaidPlugin';
+  MermaidExtension,
+} from './plugins/MermaidExtension';
 export type { SerializedMermaidNode } from './nodes/MermaidNode';
 
 // 代码绘图功能
 export { CodeDrawingNode } from './nodes/CodeDrawingNode';
 export {
   INSERT_CODE_DRAWING_COMMAND,
-  CodeDrawingPlugin,
-} from './plugins/CodeDrawingPlugin';
+  CodeDrawingExtension,
+} from './plugins/CodeDrawingExtension';
 export type {
   SerializedCodeDrawingNode,
   CodeDrawingType,
@@ -62,14 +59,14 @@ export {
 } from './nodes/DrawioNode';
 export {
   INSERT_DRAWIO_COMMAND,
-  DrawioPlugin,
-} from './plugins/DrawioPlugin';
+  DrawioExtension,
+} from './plugins/DrawioExtension';
 export type { DrawioElement } from './modals/DrawioModal';
 export type { SerializedDrawioNode } from './nodes/DrawioNode';
 
 // 思维导图节点
 export { MindNode, $createMindNode, $isMindNode } from './nodes/MindNode';
-export { INSERT_MIND_COMMAND, MindPlugin } from './plugins/MindPlugin';
+export { INSERT_MIND_COMMAND, MindExtension } from './plugins/MindExtension';
 export type { MindElements } from './modals/MindModal';
 export type { SerializedMindNode } from './nodes/MindNode';
 

@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { memo, useRef, useState } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarPopup } from './ToolbarPopup';
 import { type ColorOption, colors } from './colors';
 

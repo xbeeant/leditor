@@ -1,7 +1,7 @@
 import { Redo2, Undo2 } from 'lucide-react';
 import { memo } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';
 
 interface HistoryGroupProps {
@@ -20,10 +20,18 @@ export const HistoryGroup = memo(function HistoryGroup({
   const locale = useLocale();
   return (
     <>
-      <ToolbarButton title={t(locale, 'undo')} disabled={!canUndo} onClick={onUndo}>
+      <ToolbarButton
+        title={t(locale, 'undo')}
+        disabled={!canUndo}
+        onClick={onUndo}
+      >
         <Undo2 size={18} />
       </ToolbarButton>
-      <ToolbarButton title={t(locale, 'redo')} disabled={!canRedo} onClick={onRedo}>
+      <ToolbarButton
+        title={t(locale, 'redo')}
+        disabled={!canRedo}
+        onClick={onRedo}
+      >
         <Redo2 size={18} />
       </ToolbarButton>
     </>

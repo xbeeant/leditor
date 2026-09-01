@@ -1,10 +1,13 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import { DRAG_DROP_PASTE } from '@lexical/rich-text';
 import { isMimeType, mediaFileReader } from '@lexical/utils';
 import {
   COMMAND_PRIORITY_LOW,
   PASTE_COMMAND,
   type PasteCommandType,
+  configExtension,
+  defineExtension,
 } from 'lexical';
 import { useEffect } from 'react';
 import { INSERT_IMAGE_COMMAND } from '../commands';
@@ -18,7 +21,7 @@ const IMAGE_TYPES = ['image/'];
  * 拖拽 / 粘贴图片上传。拦截从操作系统拖入或从剪贴板粘贴的图片文件，
  * 通过 `embed.attachment.action` 上传到服务器，并用返回的 URL 插入编辑器。
  */
-export function UploadImagesPlugin(): null {
+function UploadImagesPluginInner(): null {
   const [editor] = useLexicalComposerContext();
   const embedConfig = useEmbedConfig();
 
@@ -111,3 +114,13 @@ export function UploadImagesPlugin(): null {
 
   return null;
 }
+
+/** 图片上传扩展：拖拽/粘贴图片时自动上传并插入编辑器。 */
+export const UploadImagesExtension = defineExtension({
+  name: '@leditor/upload-images',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<UploadImagesPluginInner key="upload-images" />],
+    }),
+  ],
+});

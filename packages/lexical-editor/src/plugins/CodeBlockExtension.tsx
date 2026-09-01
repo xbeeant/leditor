@@ -1,7 +1,13 @@
 import { $isCodeNode } from '@lexical/code-core';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
-import { $getNearestNodeFromDOMNode, $getNodeByKey } from 'lexical';
+import {
+  $getNearestNodeFromDOMNode,
+  $getNodeByKey,
+  configExtension,
+  defineExtension,
+} from 'lexical';
 import { Check, ChevronDown, Copy } from 'lucide-react';
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -193,7 +199,7 @@ function CodeBlockToolbar({
   );
 }
 
-export function CodeBlockPlugin(): JSX.Element | null {
+function CodeBlockPluginInner(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const isEditable = useLexicalEditable();
   const [hoveredCode, setHoveredCode] = useState<{
@@ -275,3 +281,13 @@ export function CodeBlockPlugin(): JSX.Element | null {
     document.body,
   );
 }
+
+/** 代码块工具栏扩展：hover 代码块时显示语言选择和复制按钮。 */
+export const CodeBlockExtension = defineExtension({
+  name: '@leditor/code-block',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<CodeBlockPluginInner key="code-block" />],
+    }),
+  ],
+});

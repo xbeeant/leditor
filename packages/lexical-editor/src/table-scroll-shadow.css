@@ -6,7 +6,6 @@
   box-shadow: inset -12px 0 10px -12px rgba(0, 0, 0, 0.35);
 }
 .lexical-table-scroll-middle {
-  box-shadow:
-    inset 12px 0 10px -12px rgba(0, 0, 0, 0.35),
-    inset -12px 0 10px -12px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 12px 0 10px -12px rgba(0, 0, 0, 0.35), inset -12px 0 10px
+    -12px rgba(0, 0, 0, 0.35);
 }

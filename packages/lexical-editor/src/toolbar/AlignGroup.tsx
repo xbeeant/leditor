@@ -8,9 +8,9 @@ import {
   Indent,
   Outdent,
 } from 'lucide-react';
-import { useRef, useState, memo } from 'react';
-import { t, type Locale } from '../i18n';
+import { memo, useRef, useState } from 'react';
 import { useLocale } from '../LocaleContext';
+import { type Locale, t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
 import type { AlignType } from './types';

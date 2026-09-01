@@ -18,8 +18,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 
 const BUTTON_OVERHANG = 9;
 const INDICATOR_WIDTH = 2;
@@ -415,7 +415,11 @@ function FloatingTableActions(): JSX.Element | null {
           </button>
           <button
             type="button"
-            title={canReorder ? t(locale, 'dragColumn') : t(locale, 'cannotDragColumn')}
+            title={
+              canReorder
+                ? t(locale, 'dragColumn')
+                : t(locale, 'cannotDragColumn')
+            }
             disabled={!canReorder}
             className={`${actionButtonClass} cursor-grab active:cursor-grabbing`}
             onPointerDown={handleDragStart}

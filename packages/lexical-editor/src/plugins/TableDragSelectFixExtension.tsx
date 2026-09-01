@@ -1,4 +1,3 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $createTableSelectionFrom,
   $findCellNode,
@@ -12,15 +11,15 @@ import {
   $setSelection,
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
+  defineExtension,
 } from 'lexical';
-import { useEffect } from 'react';
 
 /**
  * 修复跨单元格拖选：@lexical/table 官方行为是当鼠标拖选出表格边界时
  * （$fixRangeSelectionForSelectedTable 的 shouldMoveAnchor 分支），
  * 会选中整个表格，而不是仅选表格内实际滑过的矩形区域。
  *
- * 该插件在 document 捕获阶段监听 mouseup（早于官方注册在 window 上的
+ * 该扩展在 document 捕获阶段监听 mouseup（早于官方注册在 window 上的
  * pointerup），用 DOM Selection 的原生选区抢先建立 TableSelection，
  * 把焦点夹取回表格边界单元格，从而只选中滑过的部分。
  */
@@ -50,10 +49,9 @@ function getTableCellAtPoint(
   return { cell, table };
 }
 
-export function TableDragSelectFix(): null {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
+export const TableDragSelectFixExtension = defineExtension({
+  name: '@leditor/table-drag-fix',
+  register(editor) {
     const establishSelection = (
       table: TableNode,
       anchor: TableCellNode,
@@ -167,7 +165,5 @@ export function TableDragSelectFix(): null {
     return () => {
       document.removeEventListener('mouseup', handleMouseUp, true);
     };
-  }, [editor]);
-
-  return null;
-}
+  },
+});

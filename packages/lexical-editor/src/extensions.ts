@@ -9,8 +9,6 @@ import {
   defineExtension,
 } from 'lexical';
 import type { EditorState, LexicalEditor } from 'lexical';
-import { $createEquationNode, EquationNode } from './nodes/EquationNode';
-import { $createImageNode, ImageNode } from './nodes/ImageNode';
 import {
   INSERT_AUDIO_COMMAND,
   INSERT_EQUATION_COMMAND,
@@ -24,9 +22,11 @@ import {
   type InsertVideoPayload,
   insertBlockWithParagraphAfter,
 } from './commands';
-import { $createAudioNode, AudioNode } from './nodes/AudioNode';
-import { $createFileNode, FileNode } from './nodes/FileNode';
-import { $createVideoNode, VideoNode } from './nodes/VideoNode';
+import { $createAudioNode, AudioNode } from './nodes';
+import { $createEquationNode, EquationNode } from './nodes';
+import { $createFileNode, FileNode } from './nodes';
+import { $createImageNode, ImageNode } from './nodes';
+import { $createVideoNode, VideoNode } from './nodes';
 
 export type OnChangeCallback = (
   editorState: EditorState,

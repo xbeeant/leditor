@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import { $wrapNodeInElement } from '@lexical/utils';
 import {
   $createParagraphNode,
@@ -9,7 +10,9 @@ import {
   $isRootOrShadowRoot,
   COMMAND_PRIORITY_EDITOR,
   type LexicalCommand,
+  configExtension,
   createCommand,
+  defineExtension,
 } from 'lexical';
 import { useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
@@ -25,7 +28,7 @@ export const INSERT_DRAWIO_COMMAND: LexicalCommand<DrawioElement | undefined> =
  * 保存时将 DrawioNode 插入到当前选区位置。
  * 若选区已选中 DrawioNode，则更新该节点而非插入新节点。
  */
-export function DrawioPlugin(): JSX.Element | null {
+function DrawioPluginInner(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [initialValue, setInitialValue] = useState<DrawioElement | undefined>(
@@ -99,3 +102,13 @@ export function DrawioPlugin(): JSX.Element | null {
     />
   ) : null;
 }
+
+/** Draw.io 扩展：注册插入命令，打开 DrawioModal 让用户绘制图表。 */
+export const DrawioExtension = defineExtension({
+  name: '@leditor/drawio',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<DrawioPluginInner key="drawio" />],
+    }),
+  ],
+});

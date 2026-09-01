@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import {
   $isTableCellNode,
   $isTableSelection,
@@ -18,6 +19,8 @@ import {
   $getSelection,
   $isElementNode,
   type ElementFormatType,
+  configExtension,
+  defineExtension,
 } from 'lexical';
 import {
   AlignCenter,
@@ -100,7 +103,7 @@ function $setCellAlign(cell: TableCellNode, align: ElementFormatType): void {
 
 const MENU_GAP = 8;
 
-export function TableActionMenuPlugin(): JSX.Element | null {
+function TableActionMenuPluginInner(): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
   const locale = useLocale();
   const [menu, setMenu] = useState<MenuState | null>(null);
@@ -355,3 +358,13 @@ export function TableActionMenuPlugin(): JSX.Element | null {
     </div>
   );
 }
+
+/** 表格右键菜单扩展：右键点击表格单元格时显示操作菜单。 */
+export const TableActionMenuExtension = defineExtension({
+  name: '@leditor/table-action-menu',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<TableActionMenuPluginInner key="table-action-menu" />],
+    }),
+  ],
+});

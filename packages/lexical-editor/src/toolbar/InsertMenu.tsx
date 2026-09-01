@@ -1,5 +1,4 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getSelection, $isRangeSelection } from 'lexical';
 import {
   ChevronDown,
   Code,
@@ -136,47 +135,6 @@ export function InsertMenu({ onInsert, onInsertTable }: InsertMenuProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLDivElement>(null);
-
-  /** 获取编辑器内光标位置，用于定位弹窗 */
-  const getCursorPosition = useCallback((): { x: number; y: number } | null => {
-    const editorRoot = editor.getRootElement();
-
-    // 1. 浏览器实时选区
-    const domSelection = window.getSelection();
-    if (domSelection && domSelection.rangeCount > 0 && editorRoot) {
-      const range = domSelection.getRangeAt(0);
-      if (editorRoot.contains(range.commonAncestorContainer)) {
-        const rect = range.getBoundingClientRect();
-        return { x: rect.left + rect.width / 2, y: rect.bottom };
-      }
-    }
-
-    // 2. 从 Lexical 选区锚点节点定位
-    let pos: { x: number; y: number } | null = null;
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        const element = editor.getElementByKey(
-          selection.anchor.getNode().getKey(),
-        );
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          pos = { x: rect.left + rect.width / 2, y: rect.bottom };
-        }
-      }
-    });
-    if (pos) return pos;
-
-    // 3. 兜底：编辑器中心偏上
-    if (editorRoot) {
-      const editorRect = editorRoot.getBoundingClientRect();
-      return {
-        x: editorRect.left + editorRect.width / 2,
-        y: editorRect.top + Math.min(60, editorRect.height / 3),
-      };
-    }
-    return null;
-  }, [editor]);
 
   const closeMenu = () => {
     setOpen(false);

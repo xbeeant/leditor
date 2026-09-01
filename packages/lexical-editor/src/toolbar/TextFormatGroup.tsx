@@ -8,8 +8,8 @@ import {
   Underline,
 } from 'lucide-react';
 import { memo } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';
 import type { TextFormat } from './types';
 

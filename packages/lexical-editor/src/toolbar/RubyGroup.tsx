@@ -1,7 +1,7 @@
 import { Languages } from 'lucide-react';
 import { memo, useRef, useState } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
 
@@ -25,7 +25,10 @@ export const RubyGroup = memo(function RubyGroup({ onInsert }: RubyGroupProps) {
 
   return (
     <div ref={ref} className="relative">
-      <ToolbarButton title={t(locale, 'rubyAnnotation')} onClick={() => setOpen((v) => !v)}>
+      <ToolbarButton
+        title={t(locale, 'rubyAnnotation')}
+        onClick={() => setOpen((v) => !v)}
+      >
         <Languages size={18} />
       </ToolbarButton>
 

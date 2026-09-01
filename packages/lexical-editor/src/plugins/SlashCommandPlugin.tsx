@@ -19,12 +19,12 @@ import {
 } from 'lexical';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { INSERT_CODE_DRAWING_COMMAND } from './CodeDrawingPlugin';
 import { useLocale } from '../LocaleContext';
-import { INSERT_MERMAID_COMMAND } from './MermaidPlugin';
-import { SLASH_ITEMS, type SlashAction, SlashMenu } from '../ui/SlashMenu';
 import { $createTable, insertBlockAfter } from '../commands';
 import { t } from '../i18n';
+import { SLASH_ITEMS, type SlashAction, SlashMenu } from '../ui/SlashMenu';
+import { INSERT_CODE_DRAWING_COMMAND } from './CodeDrawingExtension';
+import { INSERT_MERMAID_COMMAND } from './MermaidExtension';
 
 const MAX_QUERY_LENGTH = 30;
 
@@ -149,7 +149,7 @@ export function SlashCommandPlugin({
       const before = text.slice(0, offset);
       const slashMatch = before.match(/(?:^|\s)\/([^/]*)$/) as RegExpMatchArray;
       if (!slashMatch) return;
-      const slashStart = slashMatch.index! + slashMatch[0].indexOf('/');
+      const slashStart = (slashMatch.index ?? 0) + slashMatch[0].indexOf('/');
       const slashEnd = offset;
       node.spliceText(slashStart, slashEnd - slashStart, '', false);
       // 选区回到 slash 起始

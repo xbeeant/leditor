@@ -1,4 +1,3 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $createTableNodeWithDimensions,
   INSERT_TABLE_COMMAND,
@@ -10,14 +9,16 @@ import {
   $insertNodeToNearestRootAtCaret,
   $isRangeSelection,
   COMMAND_PRIORITY_EDITOR,
+  defineExtension,
 } from 'lexical';
-import { useEffect } from 'react';
 
-/** Registers `INSERT_TABLE_COMMAND` so the toolbar's "Insert → Table" works. */
-export function TablePlugin(): null {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
+/**
+ * 表格插入扩展：注册 `INSERT_TABLE_COMMAND`，
+ * 使工具栏的「插入 → 表格」功能正常工作。
+ */
+export const TableInsertExtension = defineExtension({
+  name: '@leditor/table-insert',
+  register(editor) {
     return editor.registerCommand<InsertTableCommandPayload>(
       INSERT_TABLE_COMMAND,
       (payload) => {
@@ -38,7 +39,5 @@ export function TablePlugin(): null {
       },
       COMMAND_PRIORITY_EDITOR,
     );
-  }, [editor]);
-
-  return null;
-}
+  },
+});

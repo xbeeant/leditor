@@ -1,5 +1,4 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect } from 'react';
+import { defineExtension } from 'lexical';
 
 // 与 theme.ts 中 tableScrollableWrapper 的标记类保持一致
 const SCROLLABLE_WRAPPER_CLASS = 'lexical-table-scrollable-wrapper';
@@ -37,15 +36,14 @@ function findWrappers(root: HTMLElement): HTMLElement[] {
 }
 
 /**
- * 宽表格滚动阴影插件：为可横向滚动的表格容器动态添加左右滚动状态类，
+ * 宽表格滚动阴影扩展：为可横向滚动的表格容器动态添加左右滚动状态类，
  * 配合 CSS 在左右边缘显示阴影指示，提示用户还有更多列。
  */
-export function TableScrollShadowPlugin(): null {
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
+export const TableScrollShadowExtension = defineExtension({
+  name: '@leditor/table-scroll-shadow',
+  register(editor) {
     const editorElement = editor.getRootElement();
-    if (!editorElement) return;
+    if (!editorElement) return () => {};
 
     const scrollHandlers = new Map<HTMLElement, () => void>();
     const observed = new Set<HTMLElement>();
@@ -85,7 +83,5 @@ export function TableScrollShadowPlugin(): null {
       });
       scrollHandlers.clear();
     };
-  }, [editor]);
-
-  return null;
-}
+  },
+});

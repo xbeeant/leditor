@@ -18,9 +18,9 @@ import {
   SquareSplitHorizontal,
   Trash2,
 } from 'lucide-react';
-import { t } from '../i18n';
-import { useLocale } from '../LocaleContext';
 import { useEffect, useRef, useState } from 'react';
+import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ColorList } from './ColorGroup';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';

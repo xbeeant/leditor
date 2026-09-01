@@ -1,8 +1,11 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ReactExtension } from '@lexical/react/ReactExtension';
 import {
   COMMAND_PRIORITY_LOW,
   PASTE_COMMAND,
   type PasteCommandType,
+  configExtension,
+  defineExtension,
 } from 'lexical';
 import { useEffect } from 'react';
 import { INSERT_AUDIO_COMMAND, INSERT_VIDEO_COMMAND } from '../commands';
@@ -24,7 +27,7 @@ function getKind(mime: string): MediaKind | null {
  * 若配置了 `embed.attachment.action`，则上传到后端并用返回的地址插入；
  * 否则对视频 / 音频使用 object URL 做本地预览。
  */
-export function PasteMediaPlugin(): null {
+function PasteMediaPluginInner(): null {
   const [editor] = useLexicalComposerContext();
   const embedConfig = useEmbedConfig();
 
@@ -50,11 +53,11 @@ export function PasteMediaPlugin(): null {
         if (hasImage) return false;
 
         event.preventDefault();
-        mediaItems.forEach((item) => {
+        for (const item of mediaItems) {
           const file = item.getAsFile();
-          if (!file) return;
+          if (!file) continue;
           const kind = getKind(item.type);
-          if (!kind || kind === 'image') return;
+          if (!kind || kind === 'image') continue;
 
           const insert = (src: string) => {
             if (kind === 'video') {
@@ -75,7 +78,7 @@ export function PasteMediaPlugin(): null {
           } else {
             insert(URL.createObjectURL(file));
           }
-        });
+        }
         return true;
       },
       COMMAND_PRIORITY_LOW,
@@ -84,3 +87,13 @@ export function PasteMediaPlugin(): null {
 
   return null;
 }
+
+/** 粘贴媒体扩展：粘贴视频/音频文件时自动上传并插入编辑器。 */
+export const PasteMediaExtension = defineExtension({
+  name: '@leditor/paste-media',
+  dependencies: [
+    configExtension(ReactExtension, {
+      decorators: [<PasteMediaPluginInner key="paste-media" />],
+    }),
+  ],
+});

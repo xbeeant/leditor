@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 
 export const MAX_TABLE_COLS = 10;
 export const MAX_TABLE_ROWS = 8;
@@ -23,9 +23,7 @@ export function TableSizePicker({ onSelect, onCancel }: TableSizePickerProps) {
     <div className="p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-700">
-          {size.rows > 0
-            ? `${size.rows} × ${size.cols}`
-            : 'Select table size'}
+          {size.rows > 0 ? `${size.rows} × ${size.cols}` : 'Select table size'}
         </span>
         <button
           type="button"

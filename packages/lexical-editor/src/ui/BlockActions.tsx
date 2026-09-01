@@ -77,10 +77,7 @@ export function FloatingBlockActionsPlugin(): JSX.Element | null {
       // 完全落在 ContentEditable 自带的左侧 padding gutter 内，避免遮挡文本。
       const w = barRef.current?.offsetWidth || width;
       const byBlock = rect.left - w - 8;
-      return Math.min(
-        Math.max(byBlock, rootLeft),
-        window.innerWidth - w - 8,
-      );
+      return Math.min(Math.max(byBlock, rootLeft), window.innerWidth - w - 8);
     };
 
     const handleMouseMove = (event: MouseEvent) => {

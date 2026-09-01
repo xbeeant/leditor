@@ -1,7 +1,7 @@
 import { Link as LinkIcon, X } from 'lucide-react';
 import { memo, useMemo, useRef } from 'react';
-import { t } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarPopup } from './ToolbarPopup';
 
@@ -45,7 +45,11 @@ export const LinkGroup = memo(function LinkGroup({
   const locale = useLocale();
   return (
     <div ref={ref} className="relative">
-      <ToolbarButton title={t(locale, 'insertLink')} active={active} onClick={onToggle}>
+      <ToolbarButton
+        title={t(locale, 'insertLink')}
+        active={active}
+        onClick={onToggle}
+      >
         <LinkIcon size={18} />
       </ToolbarButton>
 
@@ -85,7 +89,9 @@ export const LinkGroup = memo(function LinkGroup({
             </ToolbarButton>
           </div>
           {url.trim() !== '' && !valid && (
-            <p className="mt-1 text-xs text-red-500">{t(locale, 'invalidUrl')}</p>
+            <p className="mt-1 text-xs text-red-500">
+              {t(locale, 'invalidUrl')}
+            </p>
           )}
         </ToolbarPopup>
       )}

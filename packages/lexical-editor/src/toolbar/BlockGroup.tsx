@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { memo, useRef, useState } from 'react';
-import { t, type Locale } from '../i18n';
 import { useLocale } from '../LocaleContext';
+import { type Locale, t } from '../i18n';
 import { ToolbarPopup } from './ToolbarPopup';
 import type { BlockType } from './types';
 
@@ -181,6 +181,7 @@ export const BlockGroup = memo(function BlockGroup({
                     return (
                       <button
                         key={o.value}
+                        // biome-ignore lint/a11y/useSemanticElements: custom dropdown option
                         type="button"
                         role="option"
                         aria-selected={isActive}
@@ -293,6 +294,7 @@ function CodeLanguageDropdown({
             ].map((lang) => (
               <button
                 key={lang}
+                // biome-ignore lint/a11y/useSemanticElements: custom dropdown option
                 type="button"
                 role="option"
                 aria-selected={lang === value}

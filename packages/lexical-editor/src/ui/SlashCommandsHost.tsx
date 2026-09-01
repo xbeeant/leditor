@@ -13,13 +13,11 @@ import { $createFileNode } from '../nodes';
 import { $createImageNode } from '../nodes';
 import { SlashCommandPlugin } from '../plugins';
 
-type SlashCommandsHostProps = {};
-
 /**
  * 承载 slash 命令：管理公式/图片/文件模态框状态，并把 SlashCommandPlugin
  * 触发的插入动作接入编辑器。拥有独立的 editor 上下文访问权限。
  */
-export function SlashCommandsHost(_props: SlashCommandsHostProps) {
+export function SlashCommandsHost() {
   const [editor] = useLexicalComposerContext();
   const embedConfig = useEmbedConfig();
   const locale = useLocale();
@@ -134,7 +132,7 @@ export function SlashCommandsHost(_props: SlashCommandsHostProps) {
         );
       }
     },
-    [editor],
+    [editor, equationInline],
   );
 
   const handleImageConfirm = useCallback(
