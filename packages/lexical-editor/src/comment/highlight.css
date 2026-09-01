@@ -1,0 +1,16 @@
+/* 评论高亮：通过 CSS Custom Highlight API 绘制在绘制层，
+   不修改 DOM 结构，也不修改文档 JSON。
+   注意：::highlight() 仅支持 color/background/text-decoration 等绘制类属性。 */
+
+::highlight(leditor-comment) {
+  background-color: rgb(253 224 71 / 0.45);
+}
+
+/* 当前打开气泡的线程 */
+::highlight(leditor-comment-active) {
+  background-color: rgb(252 211 77 / 0.75);
+  text-decoration: underline;
+  text-decoration-color: rgb(245 158 11);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}

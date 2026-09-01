@@ -16,6 +16,8 @@ import {
   convertInchesToTwip,
 } from 'docx';
 import type { LexicalEditor } from 'lexical';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
 import {
   convertToPng,
   fetchImageAsUint8Array,
@@ -34,6 +36,8 @@ type DocxNode = any;
 interface ExportOptions {
   /** 文档标题（用于导出文件名） */
   title?: string;
+  /** 导出的语言，用于本地化文档内的兜底文案（如链接/图片占位文本） */
+  locale?: Locale;
   /** 图片 URL 转换器（例如防盗链前缀处理） */
   realUrl?: (url: string) => string;
   /** 是否渲染水印文本 */
@@ -139,9 +143,12 @@ function resolveAlignment(node: any) {
   }
 }
 
-/**
- * 将一段连续的 inline 子节点转换为 TextRun 数组。
- */ function buildRuns(children: any[], isLink?: boolean): TextRun[] {
+/** 将一段连续的 inline 子节点转换为 TextRun 数组。 */
+function buildRuns(
+  children: any[],
+  locale: Locale,
+  isLink?: boolean,
+): TextRun[] {
   const runs: TextRun[] = [];
   for (const child of children) {
     if (child.type === 'text' || child.type === 'diff-text') {
@@ -155,7 +162,7 @@ function resolveAlignment(node: any) {
         child.children?.map((c: any) => c.text || '').join('') || '';
       runs.push(
         new TextRun({
-          text: linkText || (child.url as string) || '(链接)',
+          text: linkText || (child.url as string) || t(locale, 'docxLink'),
           color: '0563C1',
           underline: { type: UnderlineType.SINGLE },
         }),
@@ -168,7 +175,7 @@ function resolveAlignment(node: any) {
 /**
  * 将 Lexical 的 list 节点转换为 docx Paragraph 数组（模拟有序/无序列表）。
  */
-function buildListRuns(node: any): Paragraph[] {
+function buildListRuns(node: any, locale: Locale): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const listType = node.tag === 'ul' ? 'bullet' : 'number';
   let counter = 0;
@@ -179,7 +186,7 @@ function buildListRuns(node: any): Paragraph[] {
     const marker =
       listType === 'bullet' ? '•  ' : `${formatListNumber(counter)}. `;
     const runs: TextRun[] = [new TextRun({ text: marker })];
-    runs.push(...buildRuns(itemChildren));
+    runs.push(...buildRuns(itemChildren, locale));
     paragraphs.push(
       new Paragraph({
         children: runs,
@@ -200,6 +207,7 @@ async function convertNodeToDocx(
   node: any,
   options: ExportOptions,
 ): Promise<DocxNode[]> {
+  const locale: Locale = options.locale ?? 'zh-CN';
   switch (node.type) {
     case 'text':
       return node.text
@@ -211,7 +219,7 @@ async function convertNodeToDocx(
       if (children.length === 0) {
         return [new Paragraph({ text: '' })];
       }
-      const runs = buildRuns(children);
+      const runs = buildRuns(children, locale);
       return [
         new Paragraph({
           children: runs,
@@ -241,7 +249,7 @@ async function convertNodeToDocx(
     }
 
     case 'quote': {
-      const runs = buildRuns(node.children || []);
+      const runs = buildRuns(node.children || [], locale);
       return [
         new Paragraph({
           children:
@@ -262,10 +270,10 @@ async function convertNodeToDocx(
     }
 
     case 'list':
-      return buildListRuns(node);
+      return buildListRuns(node, locale);
 
     case 'listitem':
-      return buildRuns(node.children || []).map(
+      return buildRuns(node.children || [], locale).map(
         (run) => new Paragraph({ children: [run] }),
       );
 
@@ -295,7 +303,7 @@ async function convertNodeToDocx(
     case 'table': {
       const rows: TableRow[] = (node.children || []).map((row: any) => {
         const cells = (row.children || []).map((cell: any) => {
-          const cellRuns = buildRuns(cell.children || []);
+          const cellRuns = buildRuns(cell.children || [], locale);
           return new TableCell({
             children:
               cellRuns.length > 0
@@ -358,7 +366,11 @@ async function convertNodeToDocx(
         ];
       } catch (e) {
         console.error('[docx] 图片处理失败:', e);
-        return [new Paragraph({ text: `[图片] ${node.src || ''}` })];
+        return [
+          new Paragraph({
+            text: `[${t(locale, 'docxImage')}] ${node.src || ''}`,
+          }),
+        ];
       }
     }
 
@@ -377,7 +389,9 @@ async function convertNodeToDocx(
     case 'mind':
     case 'excalidraw': {
       if (!options.renderCodeDiagram) {
-        return [new Paragraph({ text: `[${node.type} 图表]` })];
+        return [
+          new Paragraph({ text: `[${node.type} ${t(locale, 'docxChart')}]` }),
+        ];
       }
       try {
         const url = await options.renderCodeDiagram(
@@ -406,12 +420,14 @@ async function convertNodeToDocx(
         ];
       } catch (e) {
         console.error('[docx] 图表渲染失败:', e);
-        return [new Paragraph({ text: `[${node.type} 图表]` })];
+        return [
+          new Paragraph({ text: `[${node.type} ${t(locale, 'docxChart')}]` }),
+        ];
       }
     }
 
     case 'callout': {
-      const runs = buildRuns(node.children || []);
+      const runs = buildRuns(node.children || [], locale);
       return [
         new Paragraph({
           children:
@@ -469,7 +485,7 @@ export async function exportLexicalValueToDocx(
       : deepCleanControlChars(value);
 
   if (!payload?.root) {
-    throw new Error('无效的 Lexical 数据');
+    throw new Error(t(options.locale ?? 'zh-CN', 'invalidLexicalData'));
   }
 
   const children: any[] = payload.root.children || [];

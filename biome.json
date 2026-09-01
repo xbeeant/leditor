@@ -25,7 +25,11 @@
       "suspicious": {
         "noExplicitAny": "off"
       },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      },
       "a11y": {
+        "useKeyWithClickEvents": "warn",
         "noAutofocus": "off",
         "useMediaCaption": "off"
       }

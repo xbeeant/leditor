@@ -21,7 +21,7 @@ import {
 } from 'lexical';
 import { Paintbrush } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { $insertListStyle, type ExtendedListType } from '../ListStyleNode';
+import { $insertListStyle, type ExtendedListType } from '../nodes/ListStyleNode';
 import { useLocale } from '../LocaleContext';
 import { t } from '../i18n';
 import { ToolbarButton } from './ToolbarButton';

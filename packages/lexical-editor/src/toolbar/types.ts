@@ -43,11 +43,16 @@ export type InsertBlockType =
   | 'table'
   | 'divider'
   | 'image'
+  | 'video'
+  | 'audio'
+  | 'file'
   | 'equation'
   | 'inlineEquation'
   | 'mermaid'
   | 'callout'
-  | 'codeDrawing';
+  | 'codeDrawing'
+  | 'drawio'
+  | 'mind';
 
 /** 独立列表插入按钮支持的格式 */
 export type ListFormatType =

@@ -9,21 +9,24 @@ import {
   defineExtension,
 } from 'lexical';
 import type { EditorState, LexicalEditor } from 'lexical';
-import { $createEquationNode, EquationNode } from './EquationNode';
-import { $createImageNode, ImageNode } from './ImageNode';
+import { $createEquationNode, EquationNode } from './nodes/EquationNode';
+import { $createImageNode, ImageNode } from './nodes/ImageNode';
 import {
   INSERT_AUDIO_COMMAND,
   INSERT_EQUATION_COMMAND,
+  INSERT_FILE_COMMAND,
   INSERT_IMAGE_COMMAND,
   INSERT_VIDEO_COMMAND,
   type InsertAudioPayload,
   type InsertEquationPayload,
+  type InsertFilePayload,
   type InsertImagePayload,
   type InsertVideoPayload,
   insertBlockWithParagraphAfter,
 } from './commands';
-import { $createAudioNode, AudioNode } from './media/AudioNode';
-import { $createVideoNode, VideoNode } from './media/VideoNode';
+import { $createAudioNode, AudioNode } from './nodes/AudioNode';
+import { $createFileNode, FileNode } from './nodes/FileNode';
+import { $createVideoNode, VideoNode } from './nodes/VideoNode';
 
 export type OnChangeCallback = (
   editorState: EditorState,
@@ -185,6 +188,33 @@ export const InsertAudioExtension = defineExtension({
       (payload) => {
         insertBlockWithParagraphAfter(editor, () =>
           $createAudioNode({ src: payload.src }),
+        );
+        return true;
+      },
+      COMMAND_PRIORITY_EDITOR,
+    );
+  },
+});
+
+/**
+ * 注册 `INSERT_FILE_COMMAND`,在光标后插入文件节点（附件），并追加正文段落。
+ * 文件节点以内联附件卡片形式渲染，支持下载和删除操作。
+ */
+export const InsertFileExtension = defineExtension({
+  name: '@leditor/insert-file',
+  register(editor) {
+    if (!editor.hasNodes([FileNode])) {
+      throw new Error('InsertFileExtension: FileNode not registered');
+    }
+    return editor.registerCommand<InsertFilePayload>(
+      INSERT_FILE_COMMAND,
+      (payload) => {
+        insertBlockWithParagraphAfter(editor, () =>
+          $createFileNode({
+            url: payload.url,
+            filename: payload.filename,
+            size: payload.size,
+          }),
         );
         return true;
       },

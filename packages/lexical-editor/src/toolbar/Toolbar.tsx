@@ -53,28 +53,30 @@ import {
   MessageSquarePlus,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { EquationModal } from '../EquationModal';
-import { $createEquationNode } from '../EquationNode';
-import { ImageModal } from '../ImageModal';
-import { $createImageNode } from '../ImageNode';
-import {
-  $createListStyleNode,
-  $insertListStyle,
-  type ExtendedListType,
-} from '../ListStyleNode';
-import { $createRubyNode } from '../RubyNode';
 import {
   $createTable,
   insertBlockAfter,
   insertBlockWithParagraphAfter,
   insertParagraphAfter,
 } from '../commands';
-import { INSERT_MERMAID_COMMAND } from '../MermaidPlugin';
-import { INSERT_CALLOUT_COMMAND } from '../CalloutPlugin';
-import { INSERT_CODE_DRAWING_COMMAND } from '../CodeDrawingPlugin';
+import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment';
 import { exportLexicalToDocx } from '../docx';
-import { TOGGLE_COMMENT_INPUT_COMMAND } from '../comment/commentCommands';
 import { type Locale, localeNames, t } from '../i18n';
+import { EquationModal } from '../modals';
+import { ImageModal } from '../modals';
+import { $createEquationNode } from '../nodes';
+import { $createImageNode } from '../nodes';
+import {
+  $createListStyleNode,
+  $insertListStyle,
+  type ExtendedListType,
+} from '../nodes';
+import { $createRubyNode } from '../nodes';
+import { INSERT_CALLOUT_COMMAND } from '../plugins';
+import { INSERT_CODE_DRAWING_COMMAND } from '../plugins';
+import { INSERT_MERMAID_COMMAND } from '../plugins';
+import { INSERT_DRAWIO_COMMAND } from '../plugins/DrawioPlugin';
+import { INSERT_MIND_COMMAND } from '../plugins/MindPlugin';
 import { AlignGroup } from './AlignGroup';
 import { BlockGroup } from './BlockGroup';
 import { ClearFormatGroup } from './ClearFormatGroup';
@@ -745,7 +747,7 @@ export function Toolbar({
         case 'mermaid':
           editor.dispatchCommand(
             INSERT_MERMAID_COMMAND,
-            'flowchart TD\n  A[开始] --> B[结束]',
+            t(locale, 'mermaidSampleContent'),
           );
           break;
         case 'callout':
@@ -754,11 +756,17 @@ export function Toolbar({
         case 'codeDrawing':
           editor.dispatchCommand(INSERT_CODE_DRAWING_COMMAND, undefined);
           break;
+        case 'drawio':
+          editor.dispatchCommand(INSERT_DRAWIO_COMMAND, undefined);
+          break;
+        case 'mind':
+          editor.dispatchCommand(INSERT_MIND_COMMAND, undefined);
+          break;
         default:
           break;
       }
     },
-    [editor, insertTable, insertImage, insertEquation],
+    [editor, insertTable, insertImage, insertEquation, locale],
   );
 
   const applyCodeLanguage = useCallback(
@@ -884,9 +892,9 @@ export function Toolbar({
 
   const onExportDocx = useCallback(
     (ed: LexicalEditor) => {
-      void exportLexicalToDocx(ed, { title: 'document' });
+      void exportLexicalToDocx(ed, { title: 'document', locale });
     },
-    [],
+    [locale],
   );
 
   return (
@@ -1002,7 +1010,11 @@ export function Toolbar({
               ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-800 hover:bg-gray-100'
               : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
           }
-          title={showComments ? 'Hide comments panel' : 'Show comments panel'}
+          title={
+            showComments
+              ? t(locale, 'hideCommentsPanel')
+              : t(locale, 'showCommentsPanel')
+          }
         >
           <MessageSquare size={14} />
         </button>
@@ -1017,7 +1029,7 @@ export function Toolbar({
                 ? 'inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-200 text-gray-800 hover:bg-gray-100'
                 : 'inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100'
             }
-            title={pinned ? 'Unpin table of contents' : 'Pin table of contents'}
+            title={pinned ? t(locale, 'unpinToc') : t(locale, 'pinToc')}
           >
             <List size={14} />
           </button>
@@ -1065,7 +1077,11 @@ export function Toolbar({
         open={equationModalOpen}
         onClose={() => setEquationModalOpen(false)}
         onConfirm={handleEquationConfirm}
-        title={equationModalInline ? '插入行内公式' : '插入公式'}
+        title={
+          equationModalInline
+            ? t(locale, 'equationModalInlineTitle')
+            : t(locale, 'equationModalTitle')
+        }
         cursorPosition={equationCursorPosition}
       />
       <ImageModal

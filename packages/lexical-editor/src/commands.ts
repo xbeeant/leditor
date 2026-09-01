@@ -47,6 +47,19 @@ export const INSERT_EQUATION_COMMAND = createCommand<InsertEquationPayload>(
   'INSERT_EQUATION_COMMAND',
 );
 
+export interface InsertFilePayload {
+  /** 文件访问 URL */
+  url: string;
+  /** 文件显示名称 */
+  filename: string;
+  /** 文件大小（字节） */
+  size?: number;
+}
+
+export const INSERT_FILE_COMMAND = createCommand<InsertFilePayload>(
+  'INSERT_FILE_COMMAND',
+);
+
 /**
  * Insert a node immediately after the current top-level block.
  * When the selection is inside a code block, the node is added after the

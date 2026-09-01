@@ -1,9 +1,8 @@
-export { CommentExtension } from './CommentExtension';
-export { CommentPlugin } from './CommentPlugin';
 export {
-  TOGGLE_COMMENT_INPUT_COMMAND,
-  WRAP_SELECTION_IN_MARK_COMMAND,
-  UNWRAP_MARK_COMMAND,
-} from './commentCommands';
-export { mockCommentsApi } from './mockApi';
-export type { CommentData, CommentThread } from './types';
+  CommentPlugin,
+  notifyCommentsChanged,
+  OPEN_COMMENT_THREAD_EVENT,
+} from './CommentPlugin';
+export { TOGGLE_COMMENT_INPUT_COMMAND } from './commentCommands';
+export { mockCommentsApi, threadKeyOf } from './mockApi';
+export type { Comment, CommentAnchor } from './types';

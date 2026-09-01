@@ -44,8 +44,10 @@
         "@lexical/rich-text": "^0.49.0",
         "@lexical/table": "^0.49.0",
         "@lexical/utils": "^0.49.0",
+        "@viz-js/viz": "^3.29.0",
         "diff-match-patch": "^1.0.5",
         "docx": "^9.7.1",
+        "flowchart.js": "^1.18.0",
         "katex": "^0.16.0",
         "lexical": "^0.49.0",
         "lucide-react": "^0.460.0",
@@ -553,6 +555,8 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@4.7.0", "https://registry.npmmirror.com/@vitejs/plugin-react/-/plugin-react-4.7.0.tgz", { "dependencies": { "@babel/core": "^7.28.0", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-beta.27", "@types/babel__core": "^7.20.5", "react-refresh": "^0.17.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA=="],
 
+    "@viz-js/viz": ["@viz-js/viz@3.29.0", "https://registry.npmmirror.com/@viz-js/viz/-/viz-3.29.0.tgz", {}, "sha512-iq4MTqNCr8pinP4C73JRFx/h2w4QbtHvXINNiPeBv3/C5tSamXwakst6ODlR/l6uh3/SGr7IAGIfSk2qMekiNw=="],
+
     "@yarnpkg/lockfile": ["@yarnpkg/lockfile@1.1.0", "https://registry.npmmirror.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz", {}, "sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ=="],
 
     "@yarnpkg/parsers": ["@yarnpkg/parsers@3.0.2", "https://registry.npmmirror.com/@yarnpkg/parsers/-/parsers-3.0.2.tgz", { "dependencies": { "js-yaml": "^3.10.0", "tslib": "^2.4.0" } }, "sha512-/HcYgtUSiJiot/XWGLOlGxPYUG65+/31V8oqk17vZLW1xlCoR4PampyePljOxY2n8/3jz9+tIFzICsyGujJZoA=="],
@@ -861,6 +865,8 @@
 
     "esprima": ["esprima@4.0.1", "https://registry.npmmirror.com/esprima/-/esprima-4.0.1.tgz", { "bin": { "esparse": "bin/esparse.js", "esvalidate": "bin/esvalidate.js" } }, "sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A=="],
 
+    "eve-raphael": ["eve-raphael@0.5.0", "https://registry.npmmirror.com/eve-raphael/-/eve-raphael-0.5.0.tgz", {}, "sha512-jrxnPsCGqng1UZuEp9DecX/AuSyAszATSjf4oEcRxvfxa1Oux4KkIPKBAAWWnpdwfARtr+Q0o9aPYWjsROD7ug=="],
+
     "eventemitter3": ["eventemitter3@4.0.7", "https://registry.npmmirror.com/eventemitter3/-/eventemitter3-4.0.7.tgz", {}, "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="],
 
     "execa": ["execa@5.0.0", "https://registry.npmmirror.com/execa/-/execa-5.0.0.tgz", { "dependencies": { "cross-spawn": "^7.0.3", "get-stream": "^6.0.0", "human-signals": "^2.1.0", "is-stream": "^2.0.0", "merge-stream": "^2.0.0", "npm-run-path": "^4.0.1", "onetime": "^5.1.2", "signal-exit": "^3.0.3", "strip-final-newline": "^2.0.0" } }, "sha512-ov6w/2LCiuyO4RLYGdpFGjkcs0wMTgGE8PrkTHikeUy5iJekXyPIKUjifk5CsE0pt7sMCrMZ3YNqoCj6idQOnQ=="],
@@ -878,6 +884,8 @@
     "find-up": ["find-up@2.1.0", "https://registry.npmmirror.com/find-up/-/find-up-2.1.0.tgz", { "dependencies": { "locate-path": "^2.0.0" } }, "sha512-NWzkk0jSJtTt08+FBFMvXoeZnOJD+jTtsRmBYbAIzJdX6l7dLgR7CTubCM5/eDdPUBvLCeVasP1brfVR/9/EZQ=="],
 
     "flat": ["flat@5.0.2", "https://registry.npmmirror.com/flat/-/flat-5.0.2.tgz", { "bin": "cli.js" }, "sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ=="],
+
+    "flowchart.js": ["flowchart.js@1.18.0", "https://registry.npmmirror.com/flowchart.js/-/flowchart.js-1.18.0.tgz", { "dependencies": { "raphael": "2.3.0" } }, "sha512-1rZflSLyrj5/+ryzU+qIQr6IGysPIHT4UrgN+6IaVv7pLDSLu7CvC9e0X7FU6ocpRAEtHk5+UaFXv9NZKRoG3g=="],
 
     "follow-redirects": ["follow-redirects@1.16.0", "https://registry.npmmirror.com/follow-redirects/-/follow-redirects-1.16.0.tgz", {}, "sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw=="],
 
@@ -1334,6 +1342,8 @@
     "proxy-from-env": ["proxy-from-env@2.1.0", "https://registry.npmmirror.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz", {}, "sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA=="],
 
     "quick-lru": ["quick-lru@4.0.1", "https://registry.npmmirror.com/quick-lru/-/quick-lru-4.0.1.tgz", {}, "sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g=="],
+
+    "raphael": ["raphael@2.3.0", "https://registry.npmmirror.com/raphael/-/raphael-2.3.0.tgz", { "dependencies": { "eve-raphael": "0.5.0" } }, "sha512-w2yIenZAQnp257XUWGni4bLMVxpUpcIl7qgxEgDIXtmSypYtlNxfXWpOBxs7LBTps5sDwhRnrToJrMUrivqNTQ=="],
 
     "react": ["react@18.3.1", "https://registry.npmmirror.com/react/-/react-18.3.1.tgz", { "dependencies": { "loose-envify": "^1.1.0" } }, "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ=="],
 

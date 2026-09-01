@@ -5,9 +5,8 @@ import {
   $isElementNode,
   $isTextNode,
   type LexicalNode,
-  type TextNode,
 } from 'lexical';
-import { Search, X } from 'lucide-react';
+import { Regex, Search, X } from 'lucide-react';
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -19,12 +18,18 @@ import {
 import { createPortal } from 'react-dom';
 import { useLocale } from '../LocaleContext';
 import { t } from '../i18n';
+import './highlight.css';
 
-/** 普通匹配的底色 */
-const MATCH_STYLE = 'background-color: rgba(250, 204, 21, 0.4);';
-/** 当前激活匹配：更深的底色 + 外描边用于醒目定位 */
-const ACTIVE_STYLE =
-  'background-color: rgba(250, 204, 21, 0.7); outline: 2px solid #f59e0b; outline-offset: 1px; border-radius: 2px;';
+/** CSS Custom Highlight API 注册名 */
+const HIGHLIGHT_ALL = 'leditor-find-match';
+const HIGHLIGHT_ACTIVE = 'leditor-find-active';
+
+/** 单个匹配项的元信息（只读收集，不修改文档） */
+interface MatchInfo {
+  nodeKey: string;
+  start: number;
+  end: number;
+}
 
 interface FindReplaceDialogProps {
   open: boolean;
@@ -32,14 +37,14 @@ interface FindReplaceDialogProps {
 }
 
 /**
- * 查找与替换浮窗。核心思路（参考 ca/lexical/packages/lib）：
- * 遍历所有文本节点，把每次出现「查找词」的片段用 splitText 从原节点中拆出，
- * 对该片段套用高亮样式以标记匹配，并支持 上一个/下一个 切换、替换 与 全部替换。
+ * 查找与替换浮窗（非破坏性实现）。
  *
- * 与参考实现的差异与改进：
- *  - 同一文本节点内的多处匹配都会被处理（参考实现只处理第一处）。
- *  - 高亮片段由 ref 追踪，关闭浮窗 / 卸载 / 重新搜索时统一清除样式，
- *    避免把高亮残留在将被保存的文档内容中。
+ * 核心思路：
+ *  - 搜索时只读遍历文档节点，收集匹配位置，通过 CSS Custom Highlight API
+ *    在绘制层渲染高亮，完全不修改文档节点树和样式。
+ *  - 关闭浮窗时只需清除 CSS highlights，无需还原任何 mark/样式。
+ *  - 替换时仅修改 TextNode 的文本内容（setTextContent），节点原有的
+ *    格式（粗体、斜体等）和样式（inline style）均被保留。
  */
 export function FindReplaceDialog({
   open,
@@ -50,265 +55,369 @@ export function FindReplaceDialog({
   const [searchText, setSearchText] = useState('');
   const [replaceText, setReplaceText] = useState('');
   const [matchCount, setMatchCount] = useState(0);
-  // 当前激活的匹配序号（0 基），用于 上一个/下一个/替换
   const [activeIndex, setActiveIndex] = useState(0);
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const [useRegex, setUseRegex] = useState(false);
+  const [regexError, setRegexError] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // 记录所有被高亮的匹配片段节点 key，便于统一清理
-  const highlightedKeysRef = useRef<string[]>([]);
-  // 当前激活匹配片段的节点 key，替换时据此精确定位
-  const activeNodeKeyRef = useRef<string | null>(null);
 
-  /** 清除上一轮搜索残留的高亮样式 */
-  const clearHighlights = useCallback(() => {
-    const keys = highlightedKeysRef.current;
-    if (keys.length > 0) {
-      editor.update(
-        () => {
-          for (const key of keys) {
-            const node = $getNodeByKey(key);
-            if ($isTextNode(node)) node.setStyle('');
-          }
-        },
-        { tag: 'history-skip' },
-      );
-    }
-    highlightedKeysRef.current = [];
-    activeNodeKeyRef.current = null;
-  }, [editor]);
+  /** 所有匹配项的元信息（只读，不修改文档） */
+  const matchesRef = useRef<MatchInfo[]>([]);
 
-  useEffect(() => {
-    if (!open) return;
-    // 打开浮窗时聚焦搜索框
-    requestAnimationFrame(() => searchInputRef.current?.focus());
-  }, [open]);
-
-  // 关闭时统一清理高亮，避免污染即将保存的内容
-  useEffect(() => {
-    if (!open) return;
-    return () => {
-      clearHighlights();
-      setSearchText('');
-      setActiveIndex(0);
-      setMatchCount(0);
-    };
-  }, [open, clearHighlights]);
+  // ─── 匹配查找 ───────────────────────────────────────────────
 
   /**
-   * 查找并高亮所有匹配片段。
-   * @param value     查找词
-   * @param targetIdx 需要以「激活」样式标记的匹配序号（0 基）
+   * 校验正则是否合法，非法时返回错误信息，合法返回空串。
    */
-  const findAndHighlight = useCallback(
-    (value: string, targetIdx = 0) => {
-      // 先清掉旧高亮，再扫描（清高亮需在独立的 update 中完成）
-      clearHighlights();
-
-      editor.update(
-        () => {
-          const highlighted: string[] = [];
-          let count = 0;
-          let activeKey: string | null = null;
-
-          const highlightNode = (node: TextNode, isActive: boolean) => {
-            node.setStyle(isActive ? ACTIVE_STYLE : MATCH_STYLE);
-            highlighted.push(node.getKey());
-            if (isActive) activeKey = node.getKey();
-            count++;
-          };
-
-          const collect = (node: LexicalNode) => {
-            if ($isTextNode(node)) {
-              const text = node.getTextContent();
-              if (value && text.includes(value)) {
-                // 找出该节点内所有匹配边界，一次 splitText 全部拆开
-                const boundaries: number[] = [];
-                let idx = text.indexOf(value);
-                while (idx !== -1) {
-                  const start = idx;
-                  const end = idx + value.length;
-                  if (boundaries[boundaries.length - 1] !== start) {
-                    boundaries.push(start);
-                  }
-                  boundaries.push(end);
-                  idx = text.indexOf(value, end);
-                }
-                const segments = node.splitText(...boundaries);
-                // 拆出的片段中，文本内容恰等于查找词的即为匹配片段
-                for (const seg of segments) {
-                  if (seg.getTextContent() === value) {
-                    highlightNode(seg, count === targetIdx);
-                  }
-                }
-              }
-              return;
-            }
-            if ($isElementNode(node)) {
-              for (const child of node.getChildren()) {
-                collect(child);
-              }
-            }
-          };
-
-          $getRoot().getChildren().forEach(collect);
-          highlightedKeysRef.current = highlighted;
-          activeNodeKeyRef.current = activeKey;
-          setMatchCount(count);
-        },
-        { tag: 'history-skip' },
-      );
-
-      // 激活匹配滚动到可视区域（用 rAF 确保 DOM 已完成渲染再滚动）
-      let keyToScroll = activeNodeKeyRef.current;
-      if (!keyToScroll) {
-        keyToScroll = highlightedKeysRef.current[targetIdx] ?? null;
-      }
-      if (keyToScroll) {
-        const scrollKey = keyToScroll;
-        requestAnimationFrame(() => {
-          editor.getEditorState().read(() => {
-            const el = editor.getElementByKey(scrollKey);
-            el?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'nearest',
-            });
-          });
-        });
+  const validateRegex = useCallback(
+    (value: string): string => {
+      if (!useRegex) return '';
+      try {
+        new RegExp(value, caseSensitive ? 'g' : 'gi');
+        return '';
+      } catch {
+        return 'Invalid regex';
       }
     },
-    [editor, clearHighlights],
-  );
-
-  const runSearch = useCallback(
-    (value: string, targetIdx = 0) => {
-      if (value.trim() !== '') {
-        findAndHighlight(value, targetIdx);
-      } else {
-        clearHighlights();
-        setMatchCount(0);
-        setActiveIndex(0);
-      }
-    },
-    [findAndHighlight, clearHighlights],
-  );
-
-  const handleSearchChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setSearchText(value);
-      setActiveIndex(0);
-      runSearch(value, 0);
-    },
-    [runSearch],
+    [useRegex, caseSensitive],
   );
 
   /**
-   * 导航到已有高亮匹配中的第 targetIdx 项，仅更新样式 + 滚动，
-   * 不重新遍历文档节点，避免 DOM 大规模重排导致编辑器意外滚动。
+   * 构建匹配函数：在单个 TextNode 的文本中找出所有匹配位置。
    */
-  const navigateToMatch = useCallback(
-    (targetIdx: number) => {
-      const keys = highlightedKeysRef.current;
-      if (keys.length === 0) return;
-
-      let newActiveKey: string | null = null;
-      editor.update(
-        () => {
-          // 重置所有高亮为普通匹配样式
-          for (const key of keys) {
-            const node = $getNodeByKey(key);
-            if ($isTextNode(node)) node.setStyle(MATCH_STYLE);
+  const buildMatcher = useCallback(
+    (value: string) => {
+      if (useRegex) {
+        const flags = caseSensitive ? 'g' : 'gi';
+        const regex = new RegExp(value, flags);
+        return (text: string): Array<{ start: number; end: number }> => {
+          const results: Array<{ start: number; end: number }> = [];
+          let m: RegExpExecArray | null = regex.exec(text);
+          while (m !== null) {
+            if (m[0].length === 0) {
+              regex.lastIndex++;
+              m = regex.exec(text);
+              continue;
+            }
+            results.push({ start: m.index, end: m.index + m[0].length });
+            m = regex.exec(text);
           }
-          // 将目标设为激活样式
-          const targetKey = keys[targetIdx] ?? null;
-          if (targetKey) {
-            const node = $getNodeByKey(targetKey);
-            if ($isTextNode(node)) node.setStyle(ACTIVE_STYLE);
-            newActiveKey = targetKey;
-          }
-        },
-        { tag: 'history-skip' },
-      );
-      activeNodeKeyRef.current = newActiveKey;
-
-      // 滚动到激活匹配
-      if (newActiveKey) {
-        const scrollKey = newActiveKey;
-        requestAnimationFrame(() => {
-          editor.getEditorState().read(() => {
-            const el = editor.getElementByKey(scrollKey);
-            el?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'nearest',
-            });
-          });
-        });
+          return results;
+        };
       }
+      return (text: string): Array<{ start: number; end: number }> => {
+        const results: Array<{ start: number; end: number }> = [];
+        const needle = caseSensitive ? value : value.toLowerCase();
+        const haystack = caseSensitive ? text : text.toLowerCase();
+        let idx = haystack.indexOf(needle);
+        while (idx !== -1) {
+          results.push({ start: idx, end: idx + value.length });
+          idx = haystack.indexOf(needle, idx + 1);
+        }
+        return results;
+      };
+    },
+    [caseSensitive, useRegex],
+  );
+
+  /**
+   * 只读遍历文档，收集所有匹配项。
+   * 返回的 MatchInfo 不含任何文档修改操作。
+   */
+  const collectMatches = useCallback(
+    (value: string): MatchInfo[] => {
+      const matcher = buildMatcher(value);
+      if (!matcher) return [];
+
+      // $ 前缀函数（$getRoot / $isTextNode 等）必须在 editor.read / update
+      // 上下文内调用，因此在只读上下文中遍历节点。
+      let collected: MatchInfo[] = [];
+      editor.getEditorState().read(() => {
+        const matches: MatchInfo[] = [];
+        const collect = (node: LexicalNode) => {
+          if ($isTextNode(node)) {
+            const text = node.getTextContent();
+            if (text) {
+              for (const m of matcher(text)) {
+                matches.push({
+                  nodeKey: node.getKey(),
+                  start: m.start,
+                  end: m.end,
+                });
+              }
+            }
+            return;
+          }
+          if ($isElementNode(node)) {
+            for (const child of node.getChildren()) {
+              collect(child);
+            }
+          }
+        };
+        $getRoot().getChildren().forEach(collect);
+        collected = matches;
+      });
+      return collected;
+    },
+    [buildMatcher, editor],
+  );
+
+  // ─── CSS Custom Highlight API 高亮渲染 ──────────────────────
+
+  /**
+   * 将 MatchInfo[] 映射为 DOM Range 并注册到 CSS.highlights。
+   * 高亮仅存在于浏览器绘制层，不触碰 DOM 结构和文档 JSON。
+   */
+  const applyHighlights = useCallback(
+    (matches: MatchInfo[], activeIdx: number) => {
+      if (typeof Highlight === 'undefined' || !CSS.highlights) {
+        return;
+      }
+
+      const all = new Highlight();
+      const active = new Highlight();
+
+      for (let i = 0; i < matches.length; i++) {
+        const m = matches[i];
+        const element = editor.getElementByKey(m.nodeKey);
+        if (!element) continue;
+
+        const range = createRangeFromMatch(element, m.start, m.end);
+        if (!range) continue;
+
+        all.add(range);
+        if (i === activeIdx) {
+          active.add(range);
+        }
+      }
+
+      CSS.highlights.set(HIGHLIGHT_ALL, all);
+      CSS.highlights.set(HIGHLIGHT_ACTIVE, active);
     },
     [editor],
   );
 
+  /** 清除所有查找高亮 */
+  const clearHighlights = useCallback(() => {
+    if (typeof CSS !== 'undefined' && CSS.highlights) {
+      CSS.highlights.delete(HIGHLIGHT_ALL);
+      CSS.highlights.delete(HIGHLIGHT_ACTIVE);
+    }
+  }, []);
+
+  // ─── 查找入口 ───────────────────────────────────────────────
+
+  /**
+   * 执行搜索：只读收集匹配 → CSS 高亮 → 更新计数。
+   * 整个过程不修改文档节点树。
+   */
+  const performSearch = useCallback(
+    (value: string, targetIdx = 0) => {
+      clearHighlights();
+
+      // 正则模式下校验合法性；非法时清空匹配并提示，不执行搜索
+      const error = validateRegex(value);
+      setRegexError(error);
+      if (error) {
+        matchesRef.current = [];
+        setMatchCount(0);
+        setActiveIndex(0);
+        return;
+      }
+
+      if (!value.trim()) {
+        matchesRef.current = [];
+        setMatchCount(0);
+        setActiveIndex(0);
+        return;
+      }
+
+      const matches = collectMatches(value);
+      matchesRef.current = matches;
+      const count = matches.length;
+      const idx = count > 0 ? Math.min(targetIdx, count - 1) : 0;
+      setMatchCount(count);
+      setActiveIndex(idx);
+      applyHighlights(matches, idx);
+
+      // 滚动到激活匹配
+      if (count > 0) {
+        const key = matches[idx].nodeKey;
+        requestAnimationFrame(() => {
+          editor.getEditorState().read(() => {
+            const el = editor.getElementByKey(key);
+            el?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest',
+            });
+          });
+        });
+      }
+    },
+    [clearHighlights, collectMatches, applyHighlights, editor, validateRegex],
+  );
+
+  // ─── 导航 ───────────────────────────────────────────────────
+
+  const navigateToMatch = useCallback(
+    (targetIdx: number) => {
+      const matches = matchesRef.current;
+      if (matches.length === 0) return;
+      const idx =
+        ((targetIdx % matches.length) + matches.length) % matches.length;
+      setActiveIndex(idx);
+      applyHighlights(matches, idx);
+
+      const key = matches[idx].nodeKey;
+      requestAnimationFrame(() => {
+        editor.getEditorState().read(() => {
+          const el = editor.getElementByKey(key);
+          el?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+          });
+        });
+      });
+    },
+    [applyHighlights, editor],
+  );
+
   const handleNext = useCallback(() => {
     if (matchCount === 0) return;
-    const next = (activeIndex + 1) % matchCount;
-    setActiveIndex(next);
-    navigateToMatch(next);
+    navigateToMatch(activeIndex + 1);
   }, [matchCount, activeIndex, navigateToMatch]);
 
   const handlePrev = useCallback(() => {
     if (matchCount === 0) return;
-    const prev = (activeIndex - 1 + matchCount) % matchCount;
-    setActiveIndex(prev);
-    navigateToMatch(prev);
+    navigateToMatch(activeIndex - 1);
   }, [matchCount, activeIndex, navigateToMatch]);
 
-  /** 替换当前激活匹配 */
-  const handleReplace = useCallback(() => {
-    const key = activeNodeKeyRef.current;
-    if (!key || matchCount === 0) return;
-    editor.update(
-      () => {
-        const node = $getNodeByKey(key);
-        if ($isTextNode(node) && node.getTextContent() === searchText) {
-          node.setTextContent(replaceText);
-        }
-      },
-      { tag: 'history-skip' },
-    );
-    // 替换后重跑查找以刷新高亮与计数
-    findAndHighlight(searchText, activeIndex);
-  }, [
-    editor,
-    searchText,
-    replaceText,
-    activeIndex,
-    matchCount,
-    findAndHighlight,
-  ]);
+  // ─── 替换 ───────────────────────────────────────────────────
 
-  /** 全部替换 */
-  const handleReplaceAll = useCallback(() => {
-    if (matchCount === 0) return;
-    const keys = [...highlightedKeysRef.current];
+  /**
+   * 替换当前激活匹配：仅修改 TextNode 的文本内容，
+   * 节点原有的 format（粗体/斜体等）和 style（inline CSS）均被保留。
+   */
+  const handleReplace = useCallback(() => {
+    const matches = matchesRef.current;
+    if (activeIndex >= matches.length || matchCount === 0) return;
+    const m = matches[activeIndex];
+
     editor.update(
       () => {
-        for (const key of keys) {
-          const node = $getNodeByKey(key);
-          if ($isTextNode(node) && node.getTextContent() === searchText) {
-            node.setTextContent(replaceText);
-          }
+        const node = $getNodeByKey(m.nodeKey);
+        if (!$isTextNode(node)) return;
+        const fullText = node.getTextContent();
+        // 验证文本未被外部修改
+        if (fullText.slice(m.start, m.end) !== searchText) return;
+        const newText =
+          fullText.slice(0, m.start) + replaceText + fullText.slice(m.end);
+        node.setTextContent(newText);
+      },
+      { tag: 'history-skip' },
+    );
+
+    // 替换后重新搜索刷新高亮
+    performSearch(searchText, activeIndex);
+  }, [editor, searchText, replaceText, activeIndex, matchCount, performSearch]);
+
+  /**
+   * 全部替换：遍历所有匹配项逐个替换文本内容，样式/格式原样保留。
+   * 从后往前替换，避免前面的替换影响后续匹配的偏移。
+   */
+  const handleReplaceAll = useCallback(() => {
+    const matches = matchesRef.current;
+    if (matches.length === 0 || !searchText) return;
+
+    // 从后往前替换，避免偏移错乱
+    const sorted = [...matches].sort((a, b) => {
+      if (a.nodeKey !== b.nodeKey) return a.nodeKey < b.nodeKey ? -1 : 1;
+      return b.start - a.start;
+    });
+
+    editor.update(
+      () => {
+        for (const m of sorted) {
+          const node = $getNodeByKey(m.nodeKey);
+          if (!$isTextNode(node)) continue;
+          const fullText = node.getTextContent();
+          if (fullText.slice(m.start, m.end) !== searchText) continue;
+          const newText =
+            fullText.slice(0, m.start) + replaceText + fullText.slice(m.end);
+          node.setTextContent(newText);
         }
       },
       { tag: 'history-skip' },
     );
+
     clearHighlights();
+    matchesRef.current = [];
     setSearchText('');
     setMatchCount(0);
     setActiveIndex(0);
-  }, [editor, searchText, replaceText, matchCount, clearHighlights]);
+  }, [editor, searchText, replaceText, clearHighlights]);
 
-  // 快捷键：⌘/Ctrl+F 开合浮窗
+  // ─── 搜索选项变更时重新搜索 ────────────────────────────────
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => {
+      if (searchText.trim()) {
+        performSearch(searchText, 0);
+      } else {
+        clearHighlights();
+        matchesRef.current = [];
+        setMatchCount(0);
+        setActiveIndex(0);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchText, open, performSearch, clearHighlights]);
+
+  // ─── 内容变更监听：编辑器更新后防抖重新搜索 ────────────────
+
+  useEffect(() => {
+    if (!open || !searchText.trim()) return;
+    let frame = 0;
+    const unregister = editor.registerUpdateListener(() => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        performSearch(searchText, activeIndex);
+      });
+    });
+    return () => {
+      unregister();
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [open, searchText, activeIndex, editor, performSearch]);
+
+  // ─── 打开/关闭 行为 ────────────────────────────────────────
+
+  useEffect(() => {
+    if (!open) return;
+    requestAnimationFrame(() => searchInputRef.current?.focus());
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    return () => {
+      clearHighlights();
+      matchesRef.current = [];
+      setSearchText('');
+      setReplaceText('');
+      setMatchCount(0);
+      setActiveIndex(0);
+      setCaseSensitive(false);
+      setUseRegex(false);
+      setRegexError('');
+    };
+  }, [open, clearHighlights]);
+
+  // ─── 快捷键 ⌘/Ctrl+F ──────────────────────────────────────
+
   useEffect(() => {
     const onKeyDown = (e: globalThis.KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
@@ -342,13 +451,20 @@ export function FindReplaceDialog({
           <input
             ref={searchInputRef}
             value={searchText}
-            onChange={handleSearchChange}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setSearchText(e.target.value)
+            }
+            onMouseDown={(e) => e.stopPropagation()}
             onFocus={(e) => e.stopPropagation()}
             onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
               e.stopPropagation();
               if (e.key === 'Enter') {
                 e.preventDefault();
-                runSearch(searchText, 0);
+                if (e.shiftKey) {
+                  handlePrev();
+                } else {
+                  handleNext();
+                }
               }
             }}
             placeholder={t(locale, 'findSearch')}
@@ -368,6 +484,37 @@ export function FindReplaceDialog({
         </button>
       </div>
 
+      {/* 搜索选项：大小写敏感 + 正则 */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setCaseSensitive((v) => !v)}
+          title={t(locale, 'findCaseSensitive')}
+          className={`inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors ${
+            caseSensitive
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+          }`}
+        >
+          <span className="leading-none">Aa</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setUseRegex((v) => !v)}
+          title={t(locale, 'findRegex')}
+          className={`inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors ${
+            useRegex
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+          }`}
+        >
+          <Regex size={12} />
+        </button>
+        {regexError && (
+          <span className="ml-1 text-[10px] text-red-500">{regexError}</span>
+        )}
+      </div>
+
       {/* 替换输入行 */}
       <input
         value={replaceText}
@@ -375,7 +522,7 @@ export function FindReplaceDialog({
         onFocus={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         placeholder={t(locale, 'findReplaceAs')}
-        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none transition-all focus:ring-2 focus:ring-blue-100"
       />
 
       {/* 计数 + 上一个/下一个 */}
@@ -435,7 +582,7 @@ export function FindReplaceDialog({
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => runSearch(searchText, 0)}
+          onClick={() => performSearch(searchText, 0)}
           className="flex-1 rounded-md bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
         >
           {t(locale, 'findSearchBtn')}
@@ -460,4 +607,49 @@ export function FindReplaceDialog({
     </div>,
     document.body,
   );
+}
+
+// ─── 工具函数 ─────────────────────────────────────────────────
+
+/**
+ * 将 Lexical TextNode 内的匹配偏移映射为 DOM Range。
+ * 通过 TreeWalker 遍历 DOM 子节点，处理 TextNode 内可能存在的
+ * 内联格式元素（如 <strong>、<em> 等）导致的多层 DOM 结构。
+ */
+function createRangeFromMatch(
+  element: HTMLElement,
+  startOffset: number,
+  endOffset: number,
+): Range | null {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+
+  let currentOffset = 0;
+  let startNode: Text | null = null;
+  let startObj = 0;
+  let endNode: Text | null = null;
+  let endObj = 0;
+
+  let node: Text | null = walker.nextNode() as Text;
+  while (node) {
+    const len = node.textContent?.length ?? 0;
+    if (!startNode && currentOffset + len >= startOffset) {
+      startNode = node;
+      startObj = startOffset - currentOffset;
+    }
+    if (currentOffset + len >= endOffset) {
+      endNode = node;
+      endObj = endOffset - currentOffset;
+      break;
+    }
+    currentOffset += len;
+    node = walker.nextNode() as Text;
+  }
+
+  if (startNode && endNode) {
+    const range = document.createRange();
+    range.setStart(startNode, startObj);
+    range.setEnd(endNode, endObj);
+    return range;
+  }
+  return null;
 }

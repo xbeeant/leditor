@@ -36,8 +36,6 @@ export const editorTheme = {
     alignJustify: 'text-justify',
     indent: 'pl-6',
   },
-  mark: 'bg-yellow-200/70 border-b-2 border-yellow-400 cursor-pointer',
-  markOverlap: 'bg-orange-200/70 border-b-2 border-orange-400 cursor-pointer',
   code: 'relative block bg-gray-900 text-gray-100 p-3 rounded font-mono text-sm overflow-auto my-2 group',
   codeHighlight: {
     atrule: 'text-purple-300',

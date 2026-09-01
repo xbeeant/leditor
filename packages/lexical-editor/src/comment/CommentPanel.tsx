@@ -1,95 +1,38 @@
-import { $isMarkNode } from '@lexical/mark';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import {
-  $getRoot,
-  $isElementNode,
-  type LexicalEditor,
-  type LexicalNode,
-} from 'lexical';
 import { Loader2, MessageSquare, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from '../LocaleContext';
 import { t } from '../i18n';
-import { UNWRAP_MARK_COMMAND } from './commentCommands';
+import { OPEN_COMMENT_THREAD_EVENT } from './CommentPlugin';
 import { timeAgo } from './format';
-import { mockCommentsApi } from './mockApi';
-import type { CommentData } from './types';
+import { mockCommentsApi, threadKeyOf } from './mockApi';
+import type { Comment } from './types';
 
 interface PanelThread {
+  /** 线程键（根评论ID） */
   threadID: string;
-  /** The highlighted text this thread is attached to (from the editor). */
+  /** 该线程锚定的原文（取自评论中融合的锚点，不依赖文档结构） */
   quote: string;
-  comments: CommentData[];
-  /** Editor key of the MarkNode, used to locate/scroll to the range. */
-  markKey: string | null;
+  comments: Comment[];
 }
 
-/** Collect every MarkNode in the tree: threadID -> quote text + mark key. */
-function $collectMarkThreads(): Record<
-  string,
-  { quote: string; markKey: string }
-> {
-  const threads: Record<string, { quote: string; markKey: string }> = {};
-  const visit = (node: LexicalNode) => {
-    if ($isMarkNode(node)) {
-      const quote = node.getTextContent();
-      for (const id of node.getIDs()) {
-        threads[id] = { quote, markKey: node.getKey() };
-      }
-      return;
-    }
-    if ($isElementNode(node)) {
-      for (const child of node.getChildren()) {
-        visit(child);
-      }
-    }
-  };
-  for (const child of $getRoot().getChildren()) {
-    visit(child);
-  }
-  return threads;
-}
-
-function latestTime(comments: CommentData[]): number {
+function latestTime(comments: Comment[]): number {
   return comments.reduce(
-    (max, c) => Math.max(max, new Date(c.createdAt).getTime()),
+    (max, c) => Math.max(max, new Date(c.createAt).getTime()),
     0,
-  );
-}
-
-/**
- * Stable signature of every mark thread (id + quote text + mark key).
- * Used to detect whether the mark structure *actually* changed (thread
- * added/removed, or the quoted text was edited) so we only refresh the
- * panel when needed instead of on every editor update (i.e. every keystroke).
- */
-function readMarkSignature(editor: LexicalEditor): string {
-  return editor.getEditorState().read(
-    () => {
-      const threads = $collectMarkThreads();
-      return Object.keys(threads)
-        .sort()
-        .map(
-          (id) => `${id}\u0000${threads[id].quote}\u0000${threads[id].markKey}`,
-        )
-        .join('|');
-    },
-    { editor },
   );
 }
 
 /**
  * Right-hand comment list panel, styled like the pinned table of contents.
  * Shows every comment thread in the document; clicking a thread scrolls to
- * (and selects) the highlighted range so the bubble opens there too.
+ * the anchored range (resolved by CommentPlugin) and opens its bubble.
+ * 面板数据全部来自评论后端：线程按根评论ID分组，锚点融合在每条评论中。
  */
 export function CommentPanel() {
-  const [editor] = useLexicalComposerContext();
   const locale = useLocale();
   const [threads, setThreads] = useState<PanelThread[]>([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
-  const markSignatureRef = useRef<string | null>(null);
   const refreshTokenRef = useRef(0);
   const loadedOnceRef = useRef(false);
 
@@ -99,31 +42,35 @@ export function CommentPanel() {
     }
     const token = ++refreshTokenRef.current;
     // Only show the full-height spinner on the first load; background
-    // refreshes (e.g. editing the highlighted text) must not flicker.
+    // refreshes (e.g. adding a reply) must not flicker.
     if (!loadedOnceRef.current) {
       setLoading(true);
     }
     try {
-      const markThreads = editor
-        .getEditorState()
-        .read(() => $collectMarkThreads());
       const all = await mockCommentsApi.fetchComments();
       if (!mounted.current || token !== refreshTokenRef.current) {
         return;
       }
-      const grouped: Record<string, CommentData[]> = {};
+      const grouped: Record<string, Comment[]> = {};
       for (const comment of all) {
-        (grouped[comment.threadID] ??= []).push(comment);
+        const key = threadKeyOf(comment);
+        if (!grouped[key]) {
+          grouped[key] = [];
+        }
+        grouped[key].push(comment);
       }
       const list: PanelThread[] = Object.entries(grouped).map(
         ([threadID, comments]) => ({
           threadID,
           comments: comments.sort(
             (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+              new Date(a.createAt).getTime() - new Date(b.createAt).getTime(),
           ),
-          quote: markThreads[threadID]?.quote ?? '',
-          markKey: markThreads[threadID]?.markKey ?? null,
+          // 引用原文优先取线程内顶层评论的锚点，其次取任意一条携带的锚点
+          quote:
+            comments.find((c) => c.commentId === threadID)?.position?.quote ??
+            comments.find((c) => c.position)?.position?.quote ??
+            '',
         }),
       );
       list.sort((a, b) => latestTime(b.comments) - latestTime(a.comments));
@@ -134,53 +81,32 @@ export function CommentPanel() {
         setLoading(false);
       }
     }
-  }, [editor]);
+  }, []);
 
-  // Refresh when the comment store changes (reply / delete from the bubble)
-  // or when the mark structure actually changed (thread added/removed or the
-  // quoted text was edited) — NOT on every editor update / keystroke.
+  // Refresh when the comment store changes (add / reply / delete anywhere)
   useEffect(() => {
     mounted.current = true;
-    markSignatureRef.current = readMarkSignature(editor);
     refresh();
-    const unregisterUpdate = editor.registerUpdateListener(() => {
-      const signature = readMarkSignature(editor);
-      if (signature !== markSignatureRef.current) {
-        markSignatureRef.current = signature;
-        refresh();
-      }
-    });
     const onStoreChange = () => refresh();
     window.addEventListener('leditor:comments-changed', onStoreChange);
     return () => {
       mounted.current = false;
-      unregisterUpdate();
       window.removeEventListener('leditor:comments-changed', onStoreChange);
     };
-  }, [editor, refresh]);
+  }, [refresh]);
 
+  // 跳转由 CommentPlugin 解析锚点并滚动定位（避免在面板里重复维护全文索引）
   const handleJump = (thread: PanelThread) => {
-    if (!thread.markKey) {
-      return;
-    }
-    const element = editor.getElementByKey(thread.markKey);
-    if (!element) {
-      return;
-    }
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+    window.dispatchEvent(
+      new CustomEvent(OPEN_COMMENT_THREAD_EVENT, {
+        detail: { threadID: thread.threadID },
+      }),
+    );
   };
 
-  const handleDelete = async (comment: CommentData) => {
-    await mockCommentsApi.deleteComment(comment.id);
-    const remaining = await mockCommentsApi.fetchComments(comment.threadID);
-    if (remaining.length === 0) {
-      editor.dispatchCommand(UNWRAP_MARK_COMMAND, comment.threadID);
-    }
+  const handleDelete = async (comment: Comment) => {
+    await mockCommentsApi.deleteComment(comment.commentId);
+    // 线程清空时锚点随评论一起删除（融合在评论中），无需额外清理
     await refresh();
   };
 
@@ -194,7 +120,9 @@ export function CommentPanel() {
     <aside className="flex w-72 shrink-0 flex-col border-l border-gray-200 bg-gray-50/50">
       <div className="flex items-center gap-1.5 px-5 pt-5 pb-2">
         <MessageSquare size={14} className="text-gray-700" />
-        <span className="text-sm font-medium text-gray-900">Comments</span>
+        <span className="text-sm font-medium text-gray-900">
+          {t(locale, 'comments')}
+        </span>
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto px-4 pt-2 pb-4">
         {loading ? (
@@ -203,8 +131,7 @@ export function CommentPanel() {
           </div>
         ) : threads.length === 0 ? (
           <p className="text-sm leading-relaxed text-gray-400">
-            No comments yet. Select some text and use the toolbar to start a
-            discussion.
+            {t(locale, 'commentsEmptyHint')}
           </p>
         ) : (
           threads.map((thread) => (
@@ -216,20 +143,27 @@ export function CommentPanel() {
                 type="button"
                 onClick={() => handleJump(thread)}
                 className="block w-full truncate text-left text-xs italic text-gray-400 hover:text-blue-500"
-                title={thread.quote ? `"${thread.quote}"` : 'Highlighted text'}
+                title={
+                  thread.quote
+                    ? `"${thread.quote}"`
+                    : t(locale, 'highlightedText')
+                }
               >
-                &ldquo;{thread.quote || 'Highlighted text'}&rdquo;
+                &ldquo;{thread.quote || t(locale, 'highlightedText')}&rdquo;
               </button>
               <div className="mt-2 space-y-2">
                 {thread.comments.map((comment) => (
-                  <div key={comment.id} className="rounded-lg bg-gray-50 p-2">
+                  <div
+                    key={comment.commentId}
+                    className="rounded-lg bg-gray-50 p-2"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-gray-700">
-                        {comment.author}
+                        {comment.nickname || comment.account}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-gray-400">
-                          {timeAgo(comment.createdAt)}
+                          {timeAgo(comment.createAt)}
                         </span>
                         <button
                           type="button"
@@ -242,7 +176,7 @@ export function CommentPanel() {
                       </div>
                     </div>
                     <p className="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">
-                      {comment.text}
+                      {comment.content}
                     </p>
                   </div>
                 ))}
