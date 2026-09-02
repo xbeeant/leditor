@@ -6,12 +6,4 @@ export type {
 } from './config';
 export { DEFAULT_DRAWIO_URL } from './config';
 
-export {
-  EmbedConfigContext,
-  EmbedConfigProvider,
-  useEmbedConfig,
-  useDrawioConfig,
-  useMindConfig,
-} from './EmbedConfigContext';
-
-export { FullscreenIcon } from './FullscreenIcon';
+export { FullscreenIcon } from './fullscreen-icon';

@@ -1,3 +1,4 @@
+import type { EditorConfig } from '../context/editor-config-context';
 import type { AttachmentProps } from '../embed';
 import type { MediaConfig, MediaUploadResult } from './config';
 
@@ -210,10 +211,12 @@ export function uploadAttachment(
  */
 export function resolveMediaUrl(
   src: string,
-  mediaConfig?: MediaConfig,
-  embedConfig?: { attachment?: { getRealUrl?: (url: string) => string } },
+  editorConfig?: EditorConfig,
 ): string {
   if (!src) return src;
+
+  const mediaConfig = editorConfig?.media;
+  const embedConfig = editorConfig?.embed;
 
   // 1. 先经过 beforeDownload 处理
   let url = mediaConfig?.beforeDownload ? mediaConfig.beforeDownload(src) : src;

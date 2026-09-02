@@ -1,0 +1,139 @@
+import { Editor } from '@leditor/lexical-editor';
+import { useState } from 'react';
+
+/**
+ * 高亮标注 (Callout) 示例
+ * 展示 Callout 块的插入和样式
+ */
+
+const initialCalloutValue = {
+  root: {
+    children: [
+      {
+        icon: 'info',
+        children: [
+          {
+            children: [
+              {
+                type: 'text',
+                text: '这是一个信息提示块，用于展示重要信息。',
+                detail: 0,
+                format: 0,
+                mode: 'normal',
+                style: '',
+                version: 1,
+              },
+            ],
+            direction: 'ltr',
+            format: '',
+            indent: 0,
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        type: 'callout',
+        version: 1,
+      },
+      {
+        children: [
+          {
+            type: 'text',
+            text: '支持 info, warning, danger, success, note 五种样式。',
+            detail: 0,
+            format: 0,
+            mode: 'normal',
+            style: '',
+            version: 1,
+          },
+        ],
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        type: 'paragraph',
+        version: 1,
+      },
+    ],
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    type: 'root',
+    version: 1,
+  },
+};
+
+export default function CalloutExample() {
+  const [activeTab, setActiveTab] = useState<'basic' | 'readonly'>('basic');
+
+  return (
+    <div className="flex h-full flex-col gap-4 p-4">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('basic')}
+          className={`rounded px-3 py-1 ${
+            activeTab === 'basic'
+              ? 'bg-blue-500 text-white'
+              : 'border border-gray-300 hover:bg-gray-100'
+          }`}
+        >
+          基础用法
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('readonly')}
+          className={`rounded px-3 py-1 ${
+            activeTab === 'readonly'
+              ? 'bg-blue-500 text-white'
+              : 'border border-gray-300 hover:bg-gray-100'
+          }`}
+        >
+          只读模式
+        </button>
+      </div>
+
+      {activeTab === 'basic' && (
+        <div className="h-[600px]">
+          <Editor
+            placeholder="点击工具栏插入 Callout 提示块..."
+            initialValue={initialCalloutValue}
+          />
+        </div>
+      )}
+
+      {activeTab === 'readonly' && (
+        <div className="h-[600px]">
+          <CalloutReadonlyExample />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalloutReadonlyExample() {
+  const [readOnly, setReadOnly] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">
+          {readOnly ? '只读模式' : '编辑模式'}
+        </span>
+        <button
+          type="button"
+          onClick={() => setReadOnly((v) => !v)}
+          className="rounded border border-gray-300 px-3 py-1 text-sm hover:bg-gray-100"
+        >
+          {readOnly ? '切换为编辑' : '切换为只读'}
+        </button>
+      </div>
+      <Editor
+        readOnly={readOnly}
+        placeholder="只读模式下 Callout 块以渲染态展示..."
+        initialValue={initialCalloutValue}
+      />
+    </div>
+  );
+}

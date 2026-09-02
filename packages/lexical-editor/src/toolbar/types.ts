@@ -31,6 +31,8 @@ export type InsertBlockType =
   | 'h2'
   | 'h3'
   | 'h4'
+  | 'h5'
+  | 'h6'
   | 'quote'
   | 'code'
   | 'bullet'
@@ -52,7 +54,11 @@ export type InsertBlockType =
   | 'callout'
   | 'codeDrawing'
   | 'drawio'
-  | 'mind';
+  | 'mind'
+  | 'outline'
+  | 'umlDiagram'
+  | 'projectCard'
+  | 'projectList';
 
 /** 独立列表插入按钮支持的格式 */
 export type ListFormatType =

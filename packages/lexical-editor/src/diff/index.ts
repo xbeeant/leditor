@@ -1,2 +1,2 @@
-export { DiffEditor } from './DiffEditor';
+export { DiffEditor } from './diff-editor';
 export { computeDiffState } from './compute-diff-state';

@@ -1,0 +1,178 @@
+import katex from 'katex';
+import type { JSX } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { useLocale } from '../context';
+import { t } from '../i18n';
+import { Modal } from './modal';
+
+interface CursorPosition {
+  x: number;
+  y: number;
+}
+
+interface EquationModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (equation: string) => void;
+  initialEquation?: string;
+  title?: string;
+  cursorPosition?: CursorPosition | null;
+}
+
+export function EquationModal({
+  open,
+  onClose,
+  onConfirm,
+  initialEquation = '',
+  title,
+  cursorPosition,
+}: EquationModalProps): JSX.Element | null {
+  const locale = useLocale();
+  const resolvedTitle = title ?? t(locale, 'equationModalTitle');
+  const [equation, setEquation] = useState(initialEquation);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [modalStyle, setModalStyle] = useState<React.CSSProperties>({});
+
+  const handleConfirm = useCallback(() => {
+    if (equation.trim()) {
+      onConfirm(equation);
+      onClose();
+    }
+  }, [equation, onConfirm, onClose]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        handleConfirm();
+      }
+    },
+    [onClose, handleConfirm],
+  );
+
+  const renderFooter = () => (
+    <div className="flex justify-end gap-2 border-t border-gray-200 px-4 py-3">
+      <button
+        type="button"
+        onClick={onClose}
+        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+      >
+        {t(locale, 'cancel')}
+      </button>
+      <button
+        type="button"
+        onClick={handleConfirm}
+        disabled={!equation.trim()}
+        className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {t(locale, 'confirm')}
+      </button>
+    </div>
+  );
+
+  useEffect(() => {
+    if (open) {
+      setEquation(initialEquation);
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  }, [open, initialEquation]);
+
+  // 计算模态框位置
+  useEffect(() => {
+    if (!open || !cursorPosition || !modalRef.current) return;
+
+    const modal = modalRef.current;
+    const modalRect = modal.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    const MODAL_HEIGHT = modalRect.height || 380;
+    const MODAL_WIDTH = modalRect.width || 448;
+    const PADDING = 16;
+
+    let x = cursorPosition.x - MODAL_WIDTH / 2;
+    let y = cursorPosition.y + 10; // 光标下方10px
+
+    // 水平方向：防止超出左右边界
+    if (x < PADDING) {
+      x = PADDING;
+    } else if (x + MODAL_WIDTH > viewportWidth - PADDING) {
+      x = viewportWidth - MODAL_WIDTH - PADDING;
+    }
+
+    // 垂直方向：处理触底
+    if (y + MODAL_HEIGHT > viewportHeight - PADDING) {
+      // 触底：显示在光标上方
+      y = cursorPosition.y - MODAL_HEIGHT - 10;
+    }
+
+    // 垂直方向：处理触顶
+    if (y < PADDING) {
+      y = PADDING;
+    }
+
+    setModalStyle({
+      position: 'fixed',
+      left: `${x}px`,
+      top: `${y}px`,
+      zIndex: 100,
+    });
+  }, [open, cursorPosition]);
+
+  useEffect(() => {
+    if (!open || !previewRef.current) return;
+    try {
+      katex.render(equation || ' ', previewRef.current, {
+        displayMode: true,
+        errorColor: '#cc0000',
+        output: 'html',
+        strict: 'warn',
+        throwOnError: false,
+        trust: false,
+      });
+    } catch {
+      previewRef.current.textContent = t(locale, 'equationSyntaxError');
+    }
+  }, [equation, open, locale]);
+
+  if (!open) return null;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={resolvedTitle}
+      size="md"
+      position="custom"
+      customStyle={modalStyle}
+      innerRef={modalRef as RefObject<HTMLDivElement>}
+      showFullscreen={false}
+      footer={renderFooter()}
+    >
+      <div className="p-4" onKeyDown={handleKeyDown}>
+        <div className="mb-3 min-h-[60px] rounded-md border border-gray-200 bg-gray-50 p-3">
+          <div ref={previewRef} className="text-center" />
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={equation}
+          onChange={(e) => setEquation(e.target.value)}
+          placeholder={t(locale, 'equationTextareaPlaceholder')}
+          className="h-28 w-full resize-none rounded-md border border-gray-300 p-3 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+        <div className="mt-2 text-xs text-gray-500">
+          {t(locale, 'modalTip')}
+        </div>
+      </div>
+    </Modal>
+  );
+}

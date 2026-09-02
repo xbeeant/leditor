@@ -2,6 +2,7 @@ import { $createTableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import {
   $createParagraphNode,
   $getSelection,
+  $insertNodes,
   $isRangeSelection,
   type ElementNode,
   type LexicalEditor,
@@ -119,6 +120,21 @@ export function insertBlockWithParagraphAfter(
 
     node.insertAfter(paragraph);
     paragraph.select();
+  });
+}
+
+/**
+ * 在光标处插入节点（不创建新段落）。
+ * 用于图片等块级节点，保持与插入扩展一致的行为。
+ */
+export function insertNodeAtCursor(
+  editor: LexicalEditor,
+  createNode: () => LexicalNode,
+): void {
+  editor.update(() => {
+    const selection = $getSelection();
+    if (!$isRangeSelection(selection)) return;
+    $insertNodes([createNode()]);
   });
 }
 

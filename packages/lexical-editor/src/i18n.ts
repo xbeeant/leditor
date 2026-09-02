@@ -109,9 +109,21 @@ const zhCN: Messages = {
   invalidUrl: '请输入有效的 URL',
   insertLink: '插入链接',
   // InsertMenu
+  insertBaseBlock: '基础块',
+  insertList: '列表',
+  insertMultimedia: '多媒体',
+  insertAdvanced: '高级块',
   insertBlocks: '区块',
   insertLists: '列表',
   insertObjects: '对象',
+  insertH5: '标题 5',
+  insertH6: '标题 6',
+  insertOutline: '大纲',
+  insertUmlDiagram: 'UML 图',
+  insertProjectCard: '项目卡片',
+  insertProjectList: '项目列表',
+  projectCardSelect: '筛选添加',
+  projectCardPaste: '链接添加',
   insertParagraph: '正文',
   insertH1: '标题 1',
   insertH2: '标题 2',
@@ -167,6 +179,7 @@ const zhCN: Messages = {
   rubyAnnotation: '注音',
   deleteComment: '删除评论',
   sendReply: '发送回复',
+  replyPlaceholder: '回复…',
   // BlockActions
   insertBelow: '在下方插入',
   dragToMove: '拖拽移动',
@@ -238,6 +251,8 @@ const zhCN: Messages = {
   zoomOut: '缩小',
   fit: '自适应',
   reset: '重置',
+  rotateCW: '顺时针旋转',
+  rotateCCW: '逆时针旋转',
   // 图表渲染错误（展示在预览区域）
   mermaidRenderFailed: 'Mermaid 渲染失败',
   plantumlRequestFailed: 'PlantUML 服务器请求失败',
@@ -250,6 +265,7 @@ const zhCN: Messages = {
   invalidLexicalData: '无效的 Lexical 数据',
   // Mermaid 插入时的默认示例内容
   mermaidSampleContent: 'flowchart TD\n  A[开始] --> B[结束]',
+  storyNotConfigured: '未配置项目服务',
 };
 
 const en: Messages = {
@@ -337,6 +353,8 @@ const en: Messages = {
   bgColor: 'Background',
   textColorAndBg: 'Text Color / Background',
   // FontGroup
+  fontFamily: 'Font Family',
+  fontSize: 'Font Size',
   searchFont: 'Search font...',
   // RubyGroup
   rubyPlaceholder: 'Ruby/Pinyin',
@@ -357,9 +375,21 @@ const en: Messages = {
   invalidUrl: 'Please enter a valid URL',
   insertLink: 'Insert link',
   // InsertMenu
+  insertBaseBlock: 'Block',
+  insertList: 'List',
+  insertMultimedia: 'Media',
+  insertAdvanced: 'Advanced',
   insertBlocks: 'Blocks',
   insertLists: 'Lists',
   insertObjects: 'Objects',
+  insertH5: 'Heading 5',
+  insertH6: 'Heading 6',
+  insertOutline: 'Outline',
+  insertUmlDiagram: 'UML Diagram',
+  insertProjectCard: 'Project Card',
+  insertProjectList: 'Project List',
+  projectCardSelect: 'Select from Panel',
+  projectCardPaste: 'Paste Link',
   insertParagraph: 'Paragraph',
   insertH1: 'Heading 1',
   insertH2: 'Heading 2',
@@ -372,6 +402,7 @@ const en: Messages = {
   insertCheckList: 'Check list',
   insertTable: 'Table',
   insertDivider: 'Divider',
+  tableSizeSelect: 'Select table size',
   insertImage: 'Image',
   insertEquation: 'Equation',
   insertInlineEquation: 'Inline Equation',
@@ -416,6 +447,7 @@ const en: Messages = {
   rubyAnnotation: 'Ruby annotation',
   deleteComment: 'Delete comment',
   sendReply: 'Send reply',
+  replyPlaceholder: 'Reply…',
   // BlockActions
   insertBelow: 'Insert below',
   dragToMove: 'Drag to move',
@@ -488,6 +520,8 @@ const en: Messages = {
   zoomOut: 'Zoom out',
   fit: 'Fit',
   reset: 'Reset',
+  rotateCW: 'Rotate clockwise',
+  rotateCCW: 'Rotate counterclockwise',
   // 图表渲染错误（展示在预览区域）
   mermaidRenderFailed: 'Mermaid rendering failed',
   plantumlRequestFailed: 'PlantUML server request failed',
@@ -500,6 +534,7 @@ const en: Messages = {
   invalidLexicalData: 'Invalid Lexical data',
   // Mermaid 插入时的默认示例内容
   mermaidSampleContent: 'flowchart TD\n  A[Start] --> B[End]',
+  storyNotConfigured: 'Story service not configured',
 };
 
 const messages: Record<Locale, Messages> = {

@@ -1,1 +1,1 @@
-export { FindReplaceDialog } from './FindReplaceDialog';
+export { FindReplaceDialog } from './find-replace-dialog';

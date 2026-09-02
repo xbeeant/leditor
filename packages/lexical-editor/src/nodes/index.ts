@@ -1,5 +1,5 @@
-export { ImageNode, $createImageNode, $isImageNode } from './ImageNode';
-export type { ImagePayload, SerializedImageNode } from './ImageNode';
+export { ImageNode, $createImageNode, $isImageNode } from './image-node';
+export type { ImagePayload, SerializedImageNode } from './image-node';
 
 export {
   EquationNode,
@@ -7,51 +7,55 @@ export {
   $isEquationNode,
   encodeEquation,
   decodeEquation,
-} from './EquationNode';
-export type { SerializedEquationNode } from './EquationNode';
+} from './equation-node';
+export type { SerializedEquationNode } from './equation-node';
 
-export { MermaidNode, $createMermaidNode, $isMermaidNode } from './MermaidNode';
-export type { SerializedMermaidNode } from './MermaidNode';
+export {
+  MermaidNode,
+  $createMermaidNode,
+  $isMermaidNode,
+} from './mermaid-node';
+export type { SerializedMermaidNode } from './mermaid-node';
 
 export {
   CodeDrawingNode,
   $createCodeDrawingNode,
   $isCodeDrawingNode,
-} from './CodeDrawingNode';
+} from './code-drawing-node';
 export type {
   SerializedCodeDrawingNode,
   CodeDrawingType,
   CodeDrawingMode,
-} from './CodeDrawingNode';
+} from './code-drawing-node';
 
-export { FileNode, $createFileNode, $isFileNode } from './FileNode';
-export type { FilePayload, SerializedFileNode } from './FileNode';
+export { FileNode, $createFileNode, $isFileNode } from './file-node';
+export type { FilePayload, SerializedFileNode } from './file-node';
 
-export { RubyNode, $createRubyNode, $isRubyNode } from './RubyNode';
-export type { RubyPayload, SerializedRubyNode } from './RubyNode';
+export { RubyNode, $createRubyNode, $isRubyNode } from './ruby-node';
+export type { RubyPayload, SerializedRubyNode } from './ruby-node';
 
-export { CalloutNode, $createCalloutNode, isCalloutNode } from './CalloutNode';
-export type { CalloutIcon, SerializedCalloutNode } from './CalloutNode';
+export { CalloutNode, $createCalloutNode, isCalloutNode } from './callout-node';
+export type { CalloutIcon, SerializedCalloutNode } from './callout-node';
 
 export {
   ListStyleNode,
   $createListStyleNode,
   $isListStyleNode,
   $insertListStyle,
-} from './ListStyleNode';
+} from './list-style-node';
 export type {
   ExtendedListType,
   SerializedListStyleNode,
-} from './ListStyleNode';
+} from './list-style-node';
 
-export { AudioNode, $createAudioNode, $isAudioNode } from './AudioNode';
-export type { AudioPayload, SerializedAudioNode } from './AudioNode';
+export { AudioNode, $createAudioNode, $isAudioNode } from './audio-node';
+export type { AudioPayload, SerializedAudioNode } from './audio-node';
 
-export { VideoNode, $createVideoNode, $isVideoNode } from './VideoNode';
-export type { VideoPayload, SerializedVideoNode } from './VideoNode';
+export { VideoNode, $createVideoNode, $isVideoNode } from './video-node';
+export type { VideoPayload, SerializedVideoNode } from './video-node';
 
-export { DrawioNode, $createDrawioNode, $isDrawioNode } from './DrawioNode';
-export type { SerializedDrawioNode } from './DrawioNode';
+export { DrawioNode, $createDrawioNode, $isDrawioNode } from './drawio-node';
+export type { SerializedDrawioNode } from './drawio-node';
 
-export { MindNode, $createMindNode, $isMindNode } from './MindNode';
-export type { SerializedMindNode } from './MindNode';
+export { MindNode, $createMindNode, $isMindNode } from './mind-node';
+export type { SerializedMindNode } from './mind-node';
