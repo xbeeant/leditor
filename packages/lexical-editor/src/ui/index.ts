@@ -1,0 +1,11 @@
+export { FloatingToolbar } from './floating-toolbar';
+export { FloatingBlockActionsPlugin } from './block-actions';
+export { FloatingTableActionsPlugin } from './floating-table-actions';
+export { ResizableContainer } from './resizable';
+export type { Dimension } from './resizable';
+export { SlashMenu } from './slash-menu';
+export type { SlashAction } from './slash-menu';
+export { SlashCommandsHost } from './slash-commands-host';
+export { TableOfContents } from './table-of-contents';
+export { CodeDrawing } from './code-drawing';
+export { ImageViewer } from './image-viewer';
