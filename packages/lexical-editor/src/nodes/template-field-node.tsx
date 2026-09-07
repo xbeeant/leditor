@@ -9,7 +9,7 @@ import {
   type Spread,
 } from 'lexical';
 import type { JSX } from 'react';
-import { TemplateFieldComponent } from '../components/template-field-component';
+import { TemplateFieldComponent } from '../components';
 
 /** 模板字段的填写控件类型 */
 export type TemplateFieldType = 'text' | 'select';
@@ -126,6 +126,7 @@ export class TemplateFieldNode extends DecoratorNode<JSX.Element> {
   createDOM(_config: EditorConfig): HTMLElement {
     const element = document.createElement(this.__inline ? 'span' : 'div');
     element.className = 'leditor-template-field';
+    element.setAttribute('data-leditor-inline', String(this.__inline));
     return element;
   }
 
@@ -136,8 +137,9 @@ export class TemplateFieldNode extends DecoratorNode<JSX.Element> {
     return { element };
   }
 
-  updateDOM(): boolean {
-    return false;
+  updateDOM(_prevNode: unknown, dom: HTMLElement): boolean {
+    const prevInline = dom.getAttribute('data-leditor-inline') === 'true';
+    return prevInline !== this.__inline;
   }
 
   isInline(): boolean {

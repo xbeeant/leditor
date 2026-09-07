@@ -1,8 +1,10 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useLexicalSubscription } from '@lexical/react/useLexicalSubscription';
 import {
+  $createParagraphNode,
   $getNodeByKey,
   $isElementNode,
+  $isTextNode,
   type LexicalEditor,
   type NodeKey,
 } from 'lexical';
@@ -12,6 +14,7 @@ import { useEditorMode, useLocale } from '../context';
 import { t } from '../i18n';
 import {
   $isTemplateFieldNode,
+  type TemplateFieldNode,
   type TemplateFieldType,
 } from '../nodes/template-field-node';
 
@@ -65,6 +68,41 @@ function readFieldSnapshot(
       inline: true,
     }
   );
+}
+
+/**
+ * 应用行内/块级形态切换。
+ *
+ * - 切换为行内（inline=true）：仅设置标记即可。
+ * - 切换为块级（inline=false）：若字段仍嵌在文本流中（父元素含其它文本节点），
+ *   必须将其抽离到独立的顶层段落，否则「自动行内化」监听会在下一次更新时
+ *   发现字段与文本共存而立即把它转回行内，导致取消行内形态不生效。
+ */
+function $applyInline(node: TemplateFieldNode, inline: boolean): void {
+  if (node.isInline() === inline) {
+    return;
+  }
+  node.setInline(inline);
+  if (inline) {
+    return;
+  }
+  // 即将转为块级：检查是否嵌在文本流中
+  const parent = node.getParent();
+  if (!$isElementNode(parent)) {
+    return;
+  }
+  const hasTextSibling = parent
+    .getChildren()
+    .some((child) => child !== node && $isTextNode(child));
+  if (!hasTextSibling) {
+    return;
+  }
+  // 抽离为独立块级字段：移动到当前顶级块之后，再从原位移除
+  const paragraph = $createParagraphNode();
+  const topLevel = node.getTopLevelElementOrThrow();
+  topLevel.insertAfter(paragraph);
+  // 先插入新段落，再移动节点，避免节点与原段落引用失效
+  paragraph.append(node);
 }
 
 /**
@@ -173,11 +211,11 @@ export function TemplateFieldComponent({
             .map((s) => s.trim())
             .filter(Boolean),
         );
-        node.setInline(draftInline);
         // 切换为下拉时清空当前值，避免出现选项之外的旧值
         if (draftType === 'select') {
           node.setPlaceholder(draftPlaceholder || '请选择');
         }
+        $applyInline(node, draftInline);
       }
     });
     setDesignOpen(false);
